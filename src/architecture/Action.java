@@ -17,7 +17,7 @@ public class Action implements Serializable {
 	 * All possible actions that a component can perform.
 	 */
 	public enum ActionType {
-		HAS, COMPUTE, RECEIVE, CHECK, VERIF_P, VERIF_A, DELETE, TRUST, SPOTCHECK
+		HAS, COMPUTE, RECEIVE, CHECK, VERIF_P, VERIF_A, DELETE, TRUST, SPOTCHECK, PRECEIVE
 	}
 
 	// Class fields
