@@ -194,7 +194,7 @@ public class ArchitectureFunctions implements Serializable {
 			ded.getComp().setDeducSet(ded.getDeducSet());
 		}
 		// create arch
-		arch = new Architecture(cSet, interComponentActions, trustSet, composSet);
+		arch = new Architecture(cSet, interComponentActions, trustSet, composSet, null); //TODO replace null with actual purp hier
 		// create the verifier
 		//parserTd = new RulesOfInferenceParserTopdown(arch);
 		parserBu = new RulesOfInferenceParserBottomup(arch);

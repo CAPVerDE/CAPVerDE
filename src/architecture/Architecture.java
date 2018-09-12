@@ -31,6 +31,7 @@ public class Architecture implements Serializable {
 	private List<Equation> allEquations;
 	private List<Statement> allStatements;
 	private List<Composition> compositions;
+	private PurposeHierarchy purpHier;
 
 	/**
 	 * The full Constructor of an architecture that is typically only invoked for
@@ -45,9 +46,10 @@ public class Architecture implements Serializable {
 	 *          a list of trust relations between the components
 	 */
 	public Architecture(Set<Component> compList, Set<Action> interCompActions,
-			Set<Trust> trusts, Set<Composition> compositions) {
+			Set<Trust> trusts, Set<Composition> compositions, PurposeHierarchy purpHier) {
 		this.compList = new ArrayList<Component>(compList);
 		this.interCompActions = new ArrayList<Action>(interCompActions);
+		this.purpHier = purpHier;
 		if (trusts == null) {
 			this.trusts = new ArrayList<Trust>();
 		} else {
@@ -81,7 +83,7 @@ public class Architecture implements Serializable {
 	 *          the list of components
 	 */
 	public Architecture(Set<Component> compList) {
-		this(compList, new LinkedHashSet<Action>(), new LinkedHashSet<Trust>(), new LinkedHashSet<Composition>());
+		this(compList, new LinkedHashSet<Action>(), new LinkedHashSet<Trust>(), new LinkedHashSet<Composition>(), new PurposeHierarchy());
 	}
 
 	private void makeCounter() {

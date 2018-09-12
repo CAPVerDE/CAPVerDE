@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class PurposeHierarchy {
 	
-	private static final int SIZE = 100;
+	private static final int SIZE = 10; //TODO for test purposes
 	
 	// class fields
 	private List<Purpose> purposes;
@@ -32,23 +32,62 @@ public class PurposeHierarchy {
 	
 	/**
 	 * Function that compares two purposes in the hierarchy.
-	 * Returns 1 if the first is lower, 0 if it is higher, null else.
+	 * Returns true if the first is lower, 0 else.
 	 * @param p1	the first purpose
 	 * @param p2	the second purpose
 	 * @return		1,0,null
 	 */
-	public Boolean compare(Purpose p1, Purpose p2) {
-		return isChild(p2, p1);
+	public boolean compare(Purpose p1, Purpose p2) {
+		if (p1.equals(p2)) {
+			return true;
+		}
+		return isChild(p1, p2);
 	}
 	
-	private Boolean isChild(Purpose p1, Purpose p2) {
+	/**
+	 * Method to check whether a purpose is a (transitive) child of another.
+	 * @param p1	the child purpose
+	 * @param p2	the other purpose
+	 * @return		true if p1 is a child of p2
+	 */
+	private boolean isChild(Purpose p1, Purpose p2) {
 		if (!(purposes.contains(p1) && purposes.contains(p2))) {
 			// one of the purposes is not contained in hierarchy
-			return null;
-		} else {
 			return false;
 		}
-			//TODO finish
+		if (adjacencyMatrix[purposes.indexOf(p2)][purposes.indexOf(p1)]) {
+			// direct child
+			return true;
+		}
+		int counter = 0;
+		int i = 0;
+		while (counter < trueCount(adjacencyMatrix[purposes.indexOf(p2)])) {
+			if (adjacencyMatrix[purposes.indexOf(p2)][i]) {
+				// child found -> check children of child recursively
+				if (isChild(p1, purposes.get(i))) {
+					return true;
+				}
+				++counter;
+			}
+			++i;
+		}
+		//TODO finish testing!
+		return false;
+	}
+	
+	/**
+	 * Inefficient helper method to count number of true in row.
+	 * @param children	the row in AM
+	 * @return			number of true
+	 */
+	private int trueCount(boolean[] children) {
+		int count = 0;
+		for (int i = 0; i < children.length; i++) {
+		    if (children[i]) {
+		        count++;
+		    }
+		}
+		return count;
 	}
 	
 	/**
@@ -89,8 +128,14 @@ public class PurposeHierarchy {
 				adjacencyMatrix[purposes.indexOf(p)][purposes.indexOf(child)] = true;
 			}
 		}
-		adjacencyMatrix[0][2] = true;
-		System.out.println("test!");
+		// delete all connections between parents and children of new purpose
+		for (Purpose parent : parents) {
+			for (Purpose child : children) {
+				if (adjacencyMatrix[purposes.indexOf(parent)][purposes.indexOf(child)]) {
+					adjacencyMatrix[purposes.indexOf(parent)][purposes.indexOf(child)] = false;
+				}
+			}
+		}
 	}
 	
 	// getter and setter methods
