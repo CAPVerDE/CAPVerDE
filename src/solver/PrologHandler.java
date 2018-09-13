@@ -1,5 +1,7 @@
 package solver;
 
+import java.io.Serializable;
+
 import architecture.Architecture;
 import gnu.prolog.term.AtomTerm;
 import gnu.prolog.term.CompoundTerm;
@@ -12,8 +14,13 @@ import gnu.prolog.vm.PrologCode;
 import gnu.prolog.vm.PrologException;
 import properties.Property;
 
-public class PrologHandler implements Handler {
+public class PrologHandler implements Handler, Serializable {
 
+	/**
+	 * @serial Serial ID for storing architecture objects in files.
+	 */
+	private static final long serialVersionUID = 8272398736727336754L;
+	
 	private Environment env;
 	private Interpreter interpreter;
 

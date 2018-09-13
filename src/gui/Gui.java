@@ -1263,8 +1263,14 @@ public class Gui {
 			public void widgetSelected(SelectionEvent event) {
 				if (showMessage(MessageType.WARN,
 						"The current architecture will be overwritten by the load. Continue?")) {
-					archFunc = SaveLoadArch.loadArch(archName.getText());
-					verifiedProps.removeAll();
+					ArchitectureFunctions tmp_arch = SaveLoadArch.loadArch(archName.getText());
+					if (tmp_arch != null) {
+						archFunc = tmp_arch;
+						verifiedProps.removeAll();
+					} else {
+						showMessage(MessageType.INF,
+								"No Architecture with the name " + archName.getText() + " found");
+					}
 				}
 			}
 		});

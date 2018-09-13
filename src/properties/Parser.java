@@ -1,5 +1,6 @@
 package properties;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,8 +20,13 @@ import utils.SuccessIndexPair;
 /**
  * The Parser Interface for both types of parsers: bottom up and top down.
  */
-public class Parser {
+public class Parser implements Serializable {
 
+	/**
+	 * @serial Serial ID for storing architecture objects in files.
+	 */
+	private static final long serialVersionUID = -6447238613115075082L;
+	
 	// class fields
 	protected Architecture arch;
 

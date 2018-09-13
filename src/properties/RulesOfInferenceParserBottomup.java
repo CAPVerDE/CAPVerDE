@@ -31,7 +31,7 @@ public class RulesOfInferenceParserBottomup extends Parser implements Serializab
 	/**
 	 * @serial Serial ID for storing architecture objects in files.
 	 */
-	private static final long serialVersionUID = -2920437147883611149L;
+	private static final long serialVersionUID = 6066854130700797593L;
 
 	// class fields
 	private Map<Property, Boolean> resultHistory;

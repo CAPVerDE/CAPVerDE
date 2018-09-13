@@ -75,6 +75,7 @@ public class SaveLoadArch {
 
     } catch (Exception ex) {
       ex.printStackTrace();
+      return null;
     }
 
     return archFunc;

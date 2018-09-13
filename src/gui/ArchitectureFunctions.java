@@ -100,7 +100,7 @@ public class ArchitectureFunctions implements Serializable {
 	private Architecture arch;
 	//private RulesOfInferenceParserTopdown parserTd;
 	private RulesOfInferenceParserBottomup parserBu;
-	private PrologParser prologSolver;
+	//private PrologParser prologSolver;
 	private Set<Property> pSet;
 
 	/**
@@ -140,8 +140,8 @@ public class ArchitectureFunctions implements Serializable {
 		// verify the property
 		if (property != null) {
 			//TODO maybe use prolog
-			boolean res = prologSolver.verifyStatement(property, 0);
-			System.out.println("Prolog return: " + res);
+			//boolean res = prologSolver.verifyStatement(property, 0);
+			//System.out.println("Prolog return: " + res);
 			//TODO use new parser when finished
 			return parserBu.verifyStatement(property, 0);
 		}
@@ -198,7 +198,7 @@ public class ArchitectureFunctions implements Serializable {
 		// create the verifier
 		//parserTd = new RulesOfInferenceParserTopdown(arch);
 		parserBu = new RulesOfInferenceParserBottomup(arch);
-		prologSolver = new PrologParser(arch);
+		//prologSolver = new PrologParser(arch);
 	}
 
 	/**

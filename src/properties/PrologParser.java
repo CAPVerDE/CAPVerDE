@@ -1,5 +1,6 @@
 package properties;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,8 +21,12 @@ import gnu.prolog.term.Term;
 import solver.PrologHandler;
 import utils.FileHandler;
 
-public class PrologParser extends Parser {
+public class PrologParser extends Parser implements Serializable {
 
+	/**
+	 * @serial Serial ID for storing architecture objects in files.
+	 */
+	private static final long serialVersionUID = -6434553758973226043L;
 	private PrologHandler prolog;
 
 	public PrologParser(Architecture arch) {
