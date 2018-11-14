@@ -15,6 +15,8 @@ import architecture.Equation.Relation;
 import architecture.Equation.Type;
 import architecture.P;
 import architecture.Proof;
+import architecture.Purpose;
+import architecture.PurposeHierarchy;
 import architecture.Statement;
 import architecture.Term;
 import architecture.Term.Operator;
@@ -23,7 +25,6 @@ import architecture.Term.TermType;
 import architecture.Trust;
 import architecture.Variable;
 import gui.Gui.MessageType;
-import properties.PrologParser;
 import properties.Property;
 import properties.RulesOfInferenceParserBottomup;
 import utils.SaveLoadArch;
@@ -50,7 +51,7 @@ public class ArchitectureFunctions implements Serializable {
 	 * Smart Energy Metering
 	 */
 	public static enum CaseStudy {
-		SEM, AW, PDR;
+		SEM, AW, PDR, MRR;
 
 		/**
 		 * Method to get the enum objects from a string.
@@ -65,6 +66,8 @@ public class ArchitectureFunctions implements Serializable {
 				return AW;
 			} else if (value.equals("Patient Data Register")) {
 				return PDR;
+			} else if (value.equals("Medical Research Register")) {
+				return MRR;
 			} else {
 				throw new IllegalArgumentException();
 			}
@@ -79,6 +82,8 @@ public class ArchitectureFunctions implements Serializable {
 				return "AccuWeather iOS App";
 			case PDR:
 				return "Patient Data Register";
+			case MRR:
+				return "Medical Research Register";
 			default:
 				return "";
 			}
@@ -102,6 +107,8 @@ public class ArchitectureFunctions implements Serializable {
 	private RulesOfInferenceParserBottomup parserBu;
 	//private PrologParser prologSolver;
 	private Set<Property> pSet;
+	private Set<Purpose> puSet;
+	private PurposeHierarchy purpHier;
 
 	/**
 	 * The constructor of the architecture functions.
@@ -119,6 +126,8 @@ public class ArchitectureFunctions implements Serializable {
 		dedSet = new LinkedHashSet<DeductionCapability>();
 		deducs = new LinkedHashSet<Deduction>();
 		pSet = new LinkedHashSet<Property>();
+		puSet = new LinkedHashSet<Purpose>();
+		purpHier = new PurposeHierarchy();
 		createDefaultDeduc();
 	}
 
@@ -180,6 +189,8 @@ public class ArchitectureFunctions implements Serializable {
 				break;
 			case SPOTCHECK:
 				// fall through
+			case PRECEIVE:
+				// fall through
 			case RECEIVE:
 				// add the intercomponent action
 				interComponentActions.add(ac);
@@ -194,7 +205,7 @@ public class ArchitectureFunctions implements Serializable {
 			ded.getComp().setDeducSet(ded.getDeducSet());
 		}
 		// create arch
-		arch = new Architecture(cSet, interComponentActions, trustSet, composSet, null); //TODO replace null with actual purp hier
+		arch = new Architecture(cSet, interComponentActions, trustSet, composSet, purpHier); //TODO replace null with actual purp hier
 		// create the verifier
 		//parserTd = new RulesOfInferenceParserTopdown(arch);
 		parserBu = new RulesOfInferenceParserBottomup(arch);
@@ -334,6 +345,8 @@ public class ArchitectureFunctions implements Serializable {
 	 */
 	public void addTerm(OperatorType opType, Operator op, String funcName,
 			String t1, String t2, String t3) {
+		//DEBUG
+		System.out.println("Archfunc->addTerm was entered...");
 		Term term1 = null;
 		Term term2 = null;
 		Term term3 = null;
@@ -372,6 +385,8 @@ public class ArchitectureFunctions implements Serializable {
 		}
 		// Debug
 		System.out.println(tSet);
+		//DEBUG
+		System.out.println("Archfunc->addTerm was exited...");
 	}
 
 	/**
@@ -552,6 +567,53 @@ public class ArchitectureFunctions implements Serializable {
 				&& variableSet.isEmpty())) {
 			aSet.add(
 					new Action(ActionType.RECEIVE, component1, component2, statementSet, variableSet));
+		}
+		// Debug
+		System.out.println(aSet);
+	}
+
+	/**
+	 * Method that adds a 'preceive' event to the architecture's Set.
+	 * @param comp1
+	 *          the name of the receiving component
+	 * @param comp2
+	 *          the name of the sending component
+	 * @param purp
+	 *          the purpose attached to the variables to send
+	 * @param varSet
+	 *          a Set of the names of the variables to send
+	 */
+	public void addPReceive(String comp1, String comp2, String purp, Set<String> varSet) {
+		Component component1 = null;
+		Component component2 = null;
+		Purpose purpose = null;
+		Set<Variable> variableSet = new LinkedHashSet<Variable>();
+		// go through the Sets and identify the right objects
+		for (Component c : cSet) {
+			if (comp1 != null && c.toString().equals(comp1)) {
+				component1 = c;
+			} else if (comp2 != null && c.toString().equals(comp2)) {
+				component2 = c;
+			}
+		}
+		for (String s : varSet) {
+			for (Variable v : vSet) {
+				if (v.toString().equals(s)) {
+					variableSet.add(v);
+					break;
+				}
+			}
+		}
+		for (Purpose p : puSet) {
+			if (p.toString().equals(purp)) {
+				purpose = p;
+				break;
+			}
+		}
+		if (component1 != null && component2 != null && !(purpose != null
+				|| variableSet.isEmpty())) {
+			aSet.add(
+					new Action(ActionType.PRECEIVE, component1, component2, purpose, variableSet));
 		}
 		// Debug
 		System.out.println(aSet);
@@ -990,7 +1052,7 @@ public class ArchitectureFunctions implements Serializable {
 		// Debug
 		System.out.println(pSet);
 	}
-	
+
 	/**
 	 * Method that adds a negation property to the architecture's Set.
 	 * @param prop1
@@ -1314,5 +1376,13 @@ public class ArchitectureFunctions implements Serializable {
 
 	public Architecture getArch() {
 		return arch;
+	}
+
+	public PurposeHierarchy getPurpHier() {
+		return purpHier;
+	}
+
+	public void setPurpHier(PurposeHierarchy purpHier) {
+		this.purpHier = purpHier;
 	}
 }

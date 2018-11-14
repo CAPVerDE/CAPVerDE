@@ -20,7 +20,7 @@ public class Property implements Serializable {
    * Type of property.
    */
   public enum PropertyType {
-    HAS, KNOWS, NOTSHARED, CONJUNCTION, NOTSTORED, SHARED, NEGATION
+    HAS, KNOWS, NOTSHARED, CONJUNCTION, NOTSTORED, SHARED, NEGATION, NOTPURP
   }
 
   // Class fields
@@ -154,6 +154,11 @@ public boolean equals(Object obj) {
         this.var = var;
         this.bound = bound;
         break;
+      case NOTPURP:
+          this.owner = owner;
+          //this.var = var;
+          //this.bound = bound;
+          break;
       default:
         // do nothing
     }
@@ -252,6 +257,23 @@ public boolean equals(Object obj) {
     // This is called for type = NOTSTORED
     this(type, owner, null, bound, var, null, null, null);
   }
+  
+  /**
+   * Constructor called for type = notpurp.
+   * 
+   * @param type
+   *          the type of property
+   * @param owner
+   *          the component the property is about
+   * @param var1
+   *          the variable involved
+   * @param bound
+   * 		  the timer-bound for the variable (how often can it be used before deletion)
+   */
+  public Property(PropertyType type, Component owner) {
+    // This is called for type = NOTSTORED
+    this(type, owner, null, null, null, null, null, null);
+  }
 
   @Override
   public String toString() {
@@ -281,6 +303,8 @@ public boolean equals(Object obj) {
         return "Shared(" + arch.owner + ", " + arch.var.getName() + ")";
       case NOTSTORED:
         return "notStored_" + arch.owner + "(" + arch.var.getName() + ", " + arch.bound + ")";
+      case NOTPURP:
+          return "notPurp_" + arch.owner;
       default:
         return "";
     }

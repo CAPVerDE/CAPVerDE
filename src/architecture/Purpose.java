@@ -1,5 +1,6 @@
 package architecture;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -57,5 +58,20 @@ public class Purpose {
 		this.name = name;
 		this.vars = vars;
 	}
+	
+	/**
+	 * Empty constructor without variables.
+	 * @param name	the name of the purpose
+	 */
+	public Purpose(String name) {
+		this(name, Collections.emptySet());
+	}
 
+	// getter and setter methods
+	public void setVars(Set<Variable> vars) {
+		this.vars = vars;
+	}
+	public Set<Variable> getVars() {
+		return vars;
+	}
 }

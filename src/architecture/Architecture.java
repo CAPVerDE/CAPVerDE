@@ -115,7 +115,7 @@ public class Architecture implements Serializable {
 						default:
 							break;
 						}
-					} else if (a.getAction() == ActionType.RECEIVE && a.getComPartner().equals(comp)) {
+					} else if ((a.getAction() == ActionType.RECEIVE || a.getAction() == ActionType.PRECEIVE) && a.getComPartner().equals(comp)) {
 						// also consider the receives
 						if (a.getVarSet().contains(var)) {
 							count++;
@@ -371,5 +371,25 @@ public class Architecture implements Serializable {
 	public List<Statement> getAllStatements() {
 		return allStatements;
 	}
-
+	
+	public PurposeHierarchy getPurposeHierarchy() {
+		return purpHier;
+	}
+	
+	public void addAction(Action action) {
+		switch (action.getAction()) {
+		case RECEIVE:
+			// fall through
+		case SPOTCHECK:
+			// fall through
+		case PRECEIVE:
+			interCompActions.add(action);
+			break;
+		default:
+			// all other actions
+			action.getComponent().addAction(action);
+			break;
+		}
+		allActions.add(action);
+	}
 }

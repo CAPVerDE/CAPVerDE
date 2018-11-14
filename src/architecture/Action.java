@@ -31,6 +31,7 @@ public class Action implements Serializable {
 	private Set<Statement> stSet;
 	private Proof pro;
 	private Attest att;
+	private Purpose purp;
 
 	/**
 	 * The full Constructor of an Action that is typically only invoked in this class
@@ -56,10 +57,12 @@ public class Action implements Serializable {
 	 *          a proof that is transmitted
 	 * @param att
 	 *          an attestation that is transmitted
+	 * @param purp
+	 * 			a purpose
 	 */
 	public Action(ActionType action, Component component, Variable var, Equation eq,
 			Component comPartner, Set<Variable> varSet, Set<Equation> eqSet,
-			Set<Statement> stSet, Proof pro, Attest att) {
+			Set<Statement> stSet, Proof pro, Attest att, Purpose purp) {
 		this.action = action;
 		this.component = component;
 		this.var = var;
@@ -70,6 +73,7 @@ public class Action implements Serializable {
 		this.stSet = stSet;
 		this.pro = pro;
 		this.att = att;
+		this.purp = purp;
 	}
 
 	/**
@@ -83,7 +87,7 @@ public class Action implements Serializable {
 	 *          the variable that is possessed / deleted
 	 */
 	public Action(ActionType action, Component component, Variable var) {
-		this(action, component, var, null, null, null, null, null, null, null);
+		this(action, component, var, null, null, null, null, null, null, null, null);
 	}
 
 	/**
@@ -102,7 +106,26 @@ public class Action implements Serializable {
 	 */
 	public Action(ActionType action, Component component, Component comPartner,
 			Set<Statement> stSet, Set<Variable> varSet) {
-		this(action, component, null, null, comPartner, varSet, null, stSet, null, null);
+		this(action, component, null, null, comPartner, varSet, null, stSet, null, null, null);
+	}
+	
+	/**
+	 * Constructor called for Action = PRECEIVE.
+	 * 
+	 * @param action
+	 *          the action to be performed (receive)
+	 * @param component
+	 *          the receiving component
+	 * @param comPartner
+	 *          the sending component
+	 * @param stSet
+	 *          a list of statements (can be empty)
+	 * @param varSet
+	 *          a list of variables
+	 */
+	public Action(ActionType action, Component component, Component comPartner,
+			Purpose purp, Set<Variable> varSet) {
+		this(action, component, null, null, comPartner, varSet, null, null, null, null, purp);
 	}
 
 	/**
@@ -116,7 +139,7 @@ public class Action implements Serializable {
 	 *          the equation that is computed
 	 */
 	public Action(ActionType action, Component component, Equation eq) {
-		this(action, component, null, eq, null, null, null, null, null, null);
+		this(action, component, null, eq, null, null, null, null, null, null, null);
 	}
 
 	/**
@@ -130,7 +153,7 @@ public class Action implements Serializable {
 	 *          a list of equations to check
 	 */
 	public Action(ActionType action, Component component, Set<Equation> eqSet) {
-		this(action, component, null, null, null, null, eqSet, null, null, null);
+		this(action, component, null, null, null, null, eqSet, null, null, null, null);
 	}
 
 	/**
@@ -144,7 +167,7 @@ public class Action implements Serializable {
 	 *          a proof to verify
 	 */
 	public Action(ActionType action, Component component, Proof pro) {
-		this(action, component, null, null, null, null, null, null, pro, null);
+		this(action, component, null, null, null, null, null, null, pro, null, null);
 	}
 
 	/**
@@ -158,7 +181,7 @@ public class Action implements Serializable {
 	 *          an attest to verify
 	 */
 	public Action(ActionType action, Component component, Attest att) {
-		this(action, component, null, null, null, null, null, null, null, att);
+		this(action, component, null, null, null, null, null, null, null, att, null);
 	}
 
 	/**
@@ -172,7 +195,7 @@ public class Action implements Serializable {
 	 *          a component that the executing component trusts
 	 */
 	public Action(ActionType action, Component component, Component comPartner) {
-		this(action, component, null, null, comPartner, null, null, null, null, null);
+		this(action, component, null, null, comPartner, null, null, null, null, null, null);
 	}
 	
 	/**
@@ -187,7 +210,7 @@ public class Action implements Serializable {
 	 * 			the variables that are spotchecked
 	 */
 	public Action(ActionType action, Component component, Component comPartner, Set<Variable> vars) {
-		this(action, component, null, null, comPartner, vars, null, null, null, null);
+		this(action, component, null, null, comPartner, vars, null, null, null, null, null);
 	}
 
 	@Override
@@ -201,6 +224,7 @@ public class Action implements Serializable {
 		result = prime * result + ((eq == null) ? 0 : eq.hashCode());
 		result = prime * result + ((eqSet == null) ? 0 : eqSet.hashCode());
 		result = prime * result + ((pro == null) ? 0 : pro.hashCode());
+		result = prime * result + ((purp == null) ? 0 : purp.hashCode());
 		result = prime * result + ((stSet == null) ? 0 : stSet.hashCode());
 		result = prime * result + ((var == null) ? 0 : var.hashCode());
 		result = prime * result + ((varSet == null) ? 0 : varSet.hashCode());
@@ -263,6 +287,11 @@ public class Action implements Serializable {
 				return false;
 		} else if (!varSet.equals(other.varSet))
 			return false;
+		if (purp == null) {
+			if (other.purp != null)
+				return false;
+		} else if (!purp.equals(other.purp))
+			return false;
 		return true;
 	}
 
@@ -277,6 +306,8 @@ public class Action implements Serializable {
 			return "Has_" + component + "(" + var + ")";
 		case RECEIVE:
 			return "Receive_" + component + "," + comPartner + "(" + stSet + "," + varSet + ")";
+		case PRECEIVE:
+			return "PReceive_" + component + "," + comPartner + "(" + purp + "," + varSet + ")";
 		case TRUST:
 			return "Trust_" + component + "," + comPartner;
 		case VERIF_A:
@@ -374,4 +405,7 @@ public class Action implements Serializable {
 		this.att = att;
 	}
 
+	public Purpose getPurpose() {
+		return purp;
+	}
 }

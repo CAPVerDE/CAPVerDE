@@ -52,8 +52,13 @@ public class Parser implements Serializable {
 			// architecture is consistent
 			System.out.println(
 					"Architecture is consistent and can be used for verification of privacy properties");
-			Gui.showMessage(MessageType.INF,
+			try {
+				Gui.showMessage(MessageType.INF,
 					"Architecture is consistent and can be used for verification of privacy properties");
+			} catch (Exception e) {
+				//TODO
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -118,6 +123,7 @@ public class Parser implements Serializable {
 	 * @return true, if the order is consistent
 	 */
 	private SuccessIndexPair isConsistent(List<Action> actions) {
+		//TODO PRECEIVE
 		// keep track of the owned variables/DBs for each component
 		boolean[][] variablesOwned = new boolean[arch.getCompList().size()][arch.getVariables().size()];
 		// go through list of actions and add owned variables and check used ones
@@ -177,6 +183,8 @@ public class Parser implements Serializable {
 				}
 				break;
 			case RECEIVE:
+				// fall through
+			case PRECEIVE:
 				// variables
 				for (Variable var : action.getVarSet()) {
 					if (arch.getVariables().indexOf(var) < 0

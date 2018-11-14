@@ -351,7 +351,35 @@ public class RulesOfInferenceParserBottomup extends Parser implements Serializab
 				System.out.println(spacing + "Rule ST2 not applicable");
 				TraceBuffer.logMessage(statement, "Rule ST2 not applicable", recurseDepth, LogType.INFO);
 			}
+			break;
+		case NOTPURP:
 			//TODO
+			// Rule P1
+			System.out.println(spacing + "Trying Rule P1...");
+			TraceBuffer.logMessage(statement, "Trying Rule P1...", recurseDepth, LogType.INFO);
+			if (isContainedIllegalPReceive(statement.getOwner())) {
+				resultHistory.put(statement, true);
+				System.out.println(spacing + "Rule P1 applied for statement: " + statement);
+				TraceBuffer.logMessage(
+						statement, "Rule P1 applied for statement: " + statement, recurseDepth, LogType.END);
+				return true;
+			} else {
+				System.out.println(spacing + "Rule P1 not applicable");
+				TraceBuffer.logMessage(statement, "Rule P1 not applicable", recurseDepth, LogType.INFO);
+			}
+			// Rule P2
+			System.out.println(spacing + "Trying Rule P2...");
+			TraceBuffer.logMessage(statement, "Trying Rule P2...", recurseDepth, LogType.INFO);
+			if (isContainedIncompatiblePurpose(statement.getOwner())) {
+				resultHistory.put(statement, true);
+				System.out.println(spacing + "Rule P2 applied for statement: " + statement);
+				TraceBuffer.logMessage(
+						statement, "Rule P2 applied for statement: " + statement, recurseDepth, LogType.END);
+				return true;
+			} else {
+				System.out.println(spacing + "Rule P2 not applicable");
+				TraceBuffer.logMessage(statement, "Rule P2 not applicable", recurseDepth, LogType.INFO);
+			}
 			break;
 		default:
 			break;
@@ -361,6 +389,63 @@ public class RulesOfInferenceParserBottomup extends Parser implements Serializab
 		System.out.println(spacing + "No Rule applicable for statement: " + statement);
 		TraceBuffer.logMessage(
 				statement, "No Rule applicable for statement: " + statement, recurseDepth, LogType.END);
+		return false;
+	}
+
+	/**
+	 * Helper method to check whether a component sends at least one variable to a component,
+	 * which passes it on to another one with an incompatible purpose.
+	 * It is checked whether a variable in the second PReceive event has a purpose higher in the purp hierarchy.
+	 * @param owner
+	 * @return
+	 */
+	private boolean isContainedIncompatiblePurpose(Component owner) {
+		// TODO not only same variable
+		for (Action a : arch.getInterComp_Actions()) {
+			if (a.getAction() != ActionType.PRECEIVE || !a.getComponent().equals(owner)) {
+				continue;
+			}
+			for (Action a2 : arch.getInterComp_Actions()) {
+				if (a2.getAction() != ActionType.PRECEIVE || !a2.getComPartner().equals(owner)) {
+					continue;
+				}
+				for (Variable var : a.getVarSet()) {
+					for (Variable var2 : a2.getVarSet()) {
+						if (isContainedDep2(owner, var, var2, 0)) {
+							// a purpose-bound variable is passed on to a third party
+							if (!arch.getPurposeHierarchy().compare(a2.getPurpose(), a.getPurpose())) {
+								// the purposes of the two PReceives are not compatible
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Helper method to check whether a component sends at least one variable with an unsuitable purpose.
+	 * It is checked whether the purpose of a PReceive action covers all transmitted variables.
+	 * @param owner
+	 * 			the component to be checked
+	 * @return
+	 * 			true/false
+	 */
+	private boolean isContainedIllegalPReceive(Component owner) {
+		// TODO test
+		for (Action a : arch.getInterComp_Actions()) {
+			if (a.getAction() != ActionType.PRECEIVE || !a.getComponent().equals(owner)) {
+				continue;
+			}
+			for (Variable var : a.getVarSet()) {
+				if (!a.getPurpose().getVars().contains(var)) {
+					// variable is not part of the purpose-bound consent
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
@@ -574,6 +659,42 @@ public class RulesOfInferenceParserBottomup extends Parser implements Serializab
 				}
 				if (allProbs >= prob) {
 					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Helper method to check whether a component can obtain a variable from another one.
+	 * @param comp
+	 * 			the component
+	 * @param start
+	 * 			the variable the component has
+	 * @param end
+	 * 			the variable the component wants to obtain
+	 * @param recurseDepth
+	 * 			the depth of recursion
+	 * @return
+	 * 			success
+	 */
+	private boolean isContainedDep2(Component comp, Variable start, Variable end, int recurseDepth) {
+		//TODO test!
+		if (start.equals(end)) {
+			// reflexive
+			return true;
+		}
+		for (Dep dep : comp.getDepSet()) {
+			if (dep.getVar().equals(end) && dep.getVarSet().contains(start)) {
+				// the component can obtain end from start
+				return true;
+			}
+			if (dep.getVar().equals(end)) {
+				// also check for possible transitive deps
+				for (Variable var : dep.getVarSet()) {
+					if (isContainedDep2(comp, start, var, recurseDepth+1)) {
+						return true;
+					}
 				}
 			}
 		}

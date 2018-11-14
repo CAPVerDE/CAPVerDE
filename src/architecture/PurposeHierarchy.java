@@ -7,15 +7,37 @@ import java.util.List;
 import java.util.Set;
 
 public class PurposeHierarchy {
-	
+
 	private static final int SIZE = 10; //TODO for test purposes
-	
+
 	// class fields
 	private List<Purpose> purposes;
 	private boolean [][] adjacencyMatrix;
 	private Purpose top;
 	private Purpose bot;
 	
+	/**
+	 * Full constructor with a list of purposes and a valid adjacency matrix.
+	 * @param purposes
+	 * 			a list of existing purposes
+	 * @param adjacencyMatrix
+	 * 			the hierarchy of the given purposes
+	 */
+	public PurposeHierarchy(List<Purpose> purposes, boolean [][] adjacencyMatrix) {
+		this.purposes = new ArrayList<Purpose>(purposes);
+		this.adjacencyMatrix = new boolean [SIZE][SIZE];
+		//TODO test this!
+		copy2DArray(adjacencyMatrix, this.adjacencyMatrix, SIZE);
+		// assume top and bot do not exist
+		top = new Purpose("Top", new LinkedHashSet<Variable>()); //TODO set that includes all vars
+		bot = new Purpose("Bot", Collections.emptySet());
+		// add top and bot
+		this.purposes.add(top);
+		this.purposes.add(bot);
+		// include the top and bot into the am
+		updateTopBot(adjacencyMatrix);
+	}
+
 	/**
 	 * Empty Constructor.
 	 * Initializes the variables.
@@ -29,13 +51,43 @@ public class PurposeHierarchy {
 		// initialize ridiculously large array...
 		adjacencyMatrix = new boolean [SIZE][SIZE];
 	}
-	
+
+	private void updateTopBot(boolean[][] adjacencyMatrix2) {
+		// TODO Auto-generated method stub
+		for (int i=0; i<adjacencyMatrix2.length; i++) {
+			boolean children = false;
+			boolean parent = false;
+			for (int j=0; j<adjacencyMatrix2[i].length; j++) {
+				children = children || adjacencyMatrix2[i][j];
+				parent = parent || adjacencyMatrix2[j][i];
+			}
+			if (!children) {
+				// no children -> set bot as child
+				adjacencyMatrix[i][adjacencyMatrix2.length + 1] = true;
+			}
+			if (!parent) {
+				// no parent -> set as child of top
+				adjacencyMatrix[adjacencyMatrix2.length][i] = true;
+			}
+		}
+		System.out.println("Debug");
+	}
+
+	private void copy2DArray(boolean[][] src, boolean[][] dest, int size) {
+		// TODO test
+		for (int i=0; i<src.length; i++) {
+			for (int j=0; j<src[i].length; j++) {
+				dest[i][j] = src[i][j];
+			}
+		}
+	}
+
 	/**
 	 * Function that compares two purposes in the hierarchy.
-	 * Returns true if the first is lower, 0 else.
+	 * Returns true if the first is lower, false else.
 	 * @param p1	the first purpose
 	 * @param p2	the second purpose
-	 * @return		1,0,null
+	 * @return		true, false
 	 */
 	public boolean compare(Purpose p1, Purpose p2) {
 		if (p1.equals(p2)) {
@@ -43,7 +95,7 @@ public class PurposeHierarchy {
 		}
 		return isChild(p1, p2);
 	}
-	
+
 	/**
 	 * Method to check whether a purpose is a (transitive) child of another.
 	 * @param p1	the child purpose
@@ -74,7 +126,7 @@ public class PurposeHierarchy {
 		//TODO finish testing!
 		return false;
 	}
-	
+
 	/**
 	 * Inefficient helper method to count number of true in row.
 	 * @param children	the row in AM
@@ -83,13 +135,13 @@ public class PurposeHierarchy {
 	private int trueCount(boolean[] children) {
 		int count = 0;
 		for (int i = 0; i < children.length; i++) {
-		    if (children[i]) {
-		        count++;
-		    }
+			if (children[i]) {
+				count++;
+			}
 		}
 		return count;
 	}
-	
+
 	/**
 	 * Add a new purpose to the hierarchy.
 	 * Updates the adjacency matrix if successful.
@@ -99,12 +151,12 @@ public class PurposeHierarchy {
 	 * @return			success
 	 */
 	public boolean addPurpose(Purpose p, Set<Purpose> parents, Set<Purpose> children) {
-		 if (!purposes.add(p)) {
-			 return false;
-		 } else {
-			 updateAM(p, parents, children);
-			 return true;
-		 }
+		if (!purposes.add(p)) {
+			return false;
+		} else {
+			updateAM(p, parents, children);
+			return true;
+		}
 	}
 
 	/**
@@ -117,16 +169,18 @@ public class PurposeHierarchy {
 	private void updateAM(Purpose p, Set<Purpose> parents, Set<Purpose> children) {
 		// TODO finish
 		// update the parent nodes
-		if (!parents.isEmpty()) {
-			for (Purpose parent : parents) {
-				adjacencyMatrix[purposes.indexOf(parent)][purposes.indexOf(p)] = true;
-			}
+		if (parents.isEmpty()) {
+			parents = Collections.singleton(top);
+		}
+		for (Purpose parent : parents) {
+			adjacencyMatrix[purposes.indexOf(parent)][purposes.indexOf(p)] = true;
 		}
 		// update child nodes
-		if (!children.isEmpty()) {
-			for (Purpose child : children) {
-				adjacencyMatrix[purposes.indexOf(p)][purposes.indexOf(child)] = true;
-			}
+		if (children.isEmpty()) {
+			children = Collections.singleton(bot);
+		}
+		for (Purpose child : children) {
+			adjacencyMatrix[purposes.indexOf(p)][purposes.indexOf(child)] = true;
 		}
 		// delete all connections between parents and children of new purpose
 		for (Purpose parent : parents) {
@@ -137,12 +191,12 @@ public class PurposeHierarchy {
 			}
 		}
 	}
-	
+
 	// getter and setter methods
 	public List<Purpose> getPurposes() {
 		return purposes;
 	}
-	
+
 	public boolean [][] getAM() {
 		return adjacencyMatrix;
 	}

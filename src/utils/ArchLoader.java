@@ -1,7 +1,9 @@
 package utils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,6 +23,8 @@ import properties.Property.PropertyType;
 import architecture.Action.ActionType;
 import architecture.Equation.Relation;
 import architecture.Equation.Type;
+import architecture.Purpose;
+import architecture.PurposeHierarchy;
 import architecture.Term.Operator;
 import architecture.Term.OperatorType;
 import architecture.Term.TermType;
@@ -482,6 +486,153 @@ public class ArchLoader {
 	//TODO more?
 	private static Set<Property> pSet3 = Stream.of(patient_prop2, patient_prop4, patient_prop6, patient_prop8, patient_prop10).collect(Collectors.toCollection(LinkedHashSet::new));
 
+	//########## Medical Research Register #################
+	// Components
+	private static Component MC = new Component("MC");
+	//private static Component CR = new Component("CR");
+	private static Component R1 = new Component("R1");
+	private static Component R2 = new Component("R2");
+	private static Component R3 = new Component("R3");
+	private static Component HI = new Component("HI");
+	private static Set<Component> cSet4 = Stream.of(MC, CR, R1, R2, R3, HI).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Variables
+	private static Variable emD = new Variable("emD");
+	private static Variable pmD = new Variable("pmD");
+	private static Variable bp = new Variable("bloodpressure");
+	private static Variable BP = new Variable("BP");
+	private static Variable bcc = new Variable("bloodcellcount");
+	private static Variable BCC = new Variable("BCC");
+	private static Variable cl = new Variable("cholesterollevel");
+	private static Variable CL = new Variable("CL");
+	//private static Variable stats = new Variable("stats");
+	private static Variable ed = new Variable("erectileDysfunction");
+	private static Variable ED = new Variable("ED");
+	private static Variable dp = new Variable("depression");
+	private static Variable DP = new Variable("DP");
+	private static Set<Variable> vSet4 = Stream.of(emD, pmD, bp, BP, bcc, BCC, cl, CL, stats, ed, ED, dp, DP).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Terms
+	private static Term termEmD = new Term(TermType.ATOM, emD, false);
+	private static Term termPmD = new Term(TermType.ATOM, pmD, false);
+	private static Term termBp = new Term(TermType.ATOM, bp, false);
+	private static Term termBP = new Term(TermType.ATOM, BP, false);
+	private static Term termBcc = new Term(TermType.ATOM, bcc, false);
+	private static Term termBCC = new Term(TermType.ATOM, BCC, false);
+	private static Term termCl = new Term(TermType.ATOM, cl, false);
+	private static Term termCL = new Term(TermType.ATOM, CL, false);
+	//private static Term termStats = new Term(TermType.ATOM, stats, false);
+	private static Term termEd = new Term(TermType.ATOM, ed, false);
+	private static Term termED = new Term(TermType.ATOM, ED, false);
+	private static Term termDp = new Term(TermType.ATOM, dp, false);
+	private static Term termDP = new Term(TermType.ATOM, DP, false);
+	private static Term termDemD = new Term(
+			TermType.COMPOSITION, OperatorType.UNARY, Operator.FUNC, "dec", termEmD, false);
+	private static Term termPdemD = new Term(
+			TermType.COMPOSITION, OperatorType.UNARY, Operator.FUNC, "pseudo", termDemD, false);
+	private static Term termApmD = new Term(
+			TermType.COMPOSITION, OperatorType.UNARY, Operator.FUNC, "aggregate", termPmD, false);
+	private static Term termEbp = new Term(
+			TermType.COMPOSITION, OperatorType.BINARY, Operator.FUNC, "extract", termPmD, termBP, false);
+	private static Term termEbcc = new Term(
+			TermType.COMPOSITION, OperatorType.BINARY, Operator.FUNC, "extract", termPmD, termBCC, false);
+	private static Term termEcl = new Term(
+			TermType.COMPOSITION, OperatorType.BINARY, Operator.FUNC, "extract", termPmD, termCL, false);
+	private static Term termEed = new Term(
+			TermType.COMPOSITION, OperatorType.BINARY, Operator.FUNC, "extract", termPmD, termED, false);
+	private static Term termEdp = new Term(
+			TermType.COMPOSITION, OperatorType.BINARY, Operator.FUNC, "extract", termPmD, termDP, false);
+	private static Set<Term> tSet4 = Stream.of(
+			termEmD, termPmD, termBp, termBP, termBcc, termBCC, termCl, termCL, termStats, termEd,
+			termED, termDp, termDP, termDemD, termPdemD, termApmD, termEbp, termEcl, termEbcc, termEed,
+			termEdp).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Equations
+	private static Equation pmD_pseudo = new Equation(
+			"pmD_pseudo", Type.RELATION, Relation.EQUALITY, termPmD, termPdemD);
+	private static Equation bp_extract = new Equation(
+			"bp_extract", Type.RELATION, Relation.EQUALITY, termBp, termEbp);
+	private static Equation bcc_extract = new Equation(
+			"bcc_extract", Type.RELATION, Relation.EQUALITY, termBcc, termEbcc);
+	private static Equation cl_extract = new Equation(
+			"cl_extract", Type.RELATION, Relation.EQUALITY, termCl, termEcl);
+	private static Equation ed_extract = new Equation(
+			"ed_extract", Type.RELATION, Relation.EQUALITY, termEd, termEed);
+	private static Equation dp_extract = new Equation(
+			"dp_extract", Type.RELATION, Relation.EQUALITY, termDp, termEdp);
+	private static Equation stats_aggregate = new Equation(
+			"stats_aggregate", Type.RELATION, Relation.EQUALITY, termStats, termApmD);
+	private static Set<Equation> eSet4 = Stream.of(
+			pmD_pseudo, bp_extract, bcc_extract, cl_extract, ed_extract, dp_extract, stats_aggregate).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Trusts
+	private static Set<Trust> trustSet4 = new LinkedHashSet<Trust>();
+	// Statements
+	private static Set<architecture.Statement> stSet4 = new LinkedHashSet<architecture.Statement>();
+	// Purposes
+	private static Purpose medRes = new Purpose("MedicalResearch", Stream.of(emD).collect(Collectors.toCollection(LinkedHashSet::new)));
+	private static Purpose cvRes = new Purpose("CardioVascResearch", Stream.of(emD).collect(Collectors.toCollection(LinkedHashSet::new)));
+	private static Purpose vRes = new Purpose("VascResearch", Stream.of(bp, bcc).collect(Collectors.toCollection(LinkedHashSet::new)));
+	private static Purpose cRes = new Purpose("CardResearch", Stream.of(bp, cl).collect(Collectors.toCollection(LinkedHashSet::new)));
+	private static Purpose qolRes = new Purpose("QoLResearch", Stream.of(dp, ed).collect(Collectors.toCollection(LinkedHashSet::new)));
+	private static Purpose Profiling = new Purpose("Profiling", Stream.of(pmD).collect(Collectors.toCollection(LinkedHashSet::new)));
+	private static List<Purpose> puList = new ArrayList<Purpose>(List.of(medRes, cvRes, cRes, vRes, qolRes, Profiling));
+	private static boolean [][] am = {{false, true, false, false, true, false}, {false, false, true, true, false, false},
+			{false, false, false, false, false, false}, {false, false, false, false, false, false},
+			{false, false, false, false, false, false}, {false, false, false, false, false, false}}; //TODO also include top and bot?
+	private static PurposeHierarchy purpHier = new PurposeHierarchy(puList, am);
+	// Actions
+	private static Action hasMC_emD = new Action(ActionType.HAS, MC, emD);
+	private static Action hasCR_BP = new Action(ActionType.HAS, CR, BP);
+	private static Action hasCR_BCC = new Action(ActionType.HAS, CR, BCC);
+	private static Action hasCR_CL = new Action(ActionType.HAS, CR, CL);
+	private static Action hasCR_ED = new Action(ActionType.HAS, CR, ED);
+	private static Action hasCR_DP = new Action(ActionType.HAS, CR, DP);
+	private static Action computeCR_pmD = new Action(ActionType.COMPUTE, CR, pmD_pseudo);
+	private static Action computeCR_bp = new Action(ActionType.COMPUTE, CR, bp_extract);
+	private static Action computeCR_bcc = new Action(ActionType.COMPUTE, CR, bcc_extract);
+	private static Action computeCR_cl = new Action(ActionType.COMPUTE, CR, cl_extract);
+	private static Action computeCR_ed = new Action(ActionType.COMPUTE, CR, ed_extract);
+	private static Action computeCR_dp = new Action(ActionType.COMPUTE, CR, dp_extract);
+	private static Action computeCR_stats = new Action(ActionType.COMPUTE, CR, stats_aggregate);
+	private static Action preceiveCRMC = new Action(ActionType.PRECEIVE, CR, MC, cvRes, Set.of(emD));
+	private static Action preceiveR1CR = new Action(ActionType.PRECEIVE, R1, CR, vRes, Set.of(bp, bcc));
+	private static Action preceiveR2CR = new Action(ActionType.PRECEIVE, R2, CR, cRes, Set.of(bp, cl));
+	private static Action preceiveR3CR = new Action(ActionType.PRECEIVE, R3, CR, qolRes, Set.of(ed, dp));
+	private static Action preceiveHICR = new Action(ActionType.PRECEIVE, HI, CR, Profiling, Set.of(stats));
+	private static Set<Action> aSet4 = Stream.of(
+			hasMC_emD, hasCR_BP, hasCR_BCC, hasCR_CL, hasCR_ED, hasCR_DP, computeCR_pmD, computeCR_bp,
+			computeCR_bcc, computeCR_cl, computeCR_ed, computeCR_dp, computeCR_stats, preceiveCRMC,
+			preceiveR1CR, preceiveR2CR, preceiveR3CR, preceiveHICR).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Dependencies
+	//TODO
+	private static Dep mrr_dep1 = new Dep(pmD, Set.of(emD), 1);
+	private static Dep mrr_dep2 = new Dep(bp, Set.of(pmD), 1);
+	private static Dep mrr_dep3 = new Dep(bcc, Set.of(pmD), 1);
+	private static Dep mrr_dep4 = new Dep(cl, Set.of(pmD), 1);
+	private static Dep mrr_dep5 = new Dep(ed, Set.of(pmD), 1);
+	private static Dep mrr_dep6 = new Dep(dp, Set.of(pmD), 1);
+	private static Dep mrr_dep7 = new Dep(stats, Set.of(pmD), 1);
+	private static Set<DependenceRelation> dSet4 = Stream.of(
+			new DependenceRelation(MC, mrr_dep1), new DependenceRelation(MC, mrr_dep2),
+			new DependenceRelation(MC, mrr_dep3), new DependenceRelation(MC, mrr_dep4),
+			new DependenceRelation(MC, mrr_dep5), new DependenceRelation(MC, mrr_dep6),
+			new DependenceRelation(MC, mrr_dep7), new DependenceRelation(CR, mrr_dep1),
+			new DependenceRelation(CR, mrr_dep2), new DependenceRelation(CR, mrr_dep3),
+			new DependenceRelation(CR, mrr_dep4), new DependenceRelation(CR, mrr_dep5),
+			new DependenceRelation(CR, mrr_dep6), new DependenceRelation(CR, mrr_dep7)).collect(Collectors.toCollection(LinkedHashSet::new));
+	//private static Set<DependenceRelation> dSet4 = new LinkedHashSet<DependenceRelation>();
+	// Deductions
+	private static DeductionCapability dc_MC = new DeductionCapability(MC, Set.of(deduc4));
+	//private static DeductionCapability dc_CR = new DeductionCapability(CR, Set.of(deduc4));
+	private static DeductionCapability dc_R1 = new DeductionCapability(R1, Set.of(deduc4));
+	private static DeductionCapability dc_R2 = new DeductionCapability(R2, Set.of(deduc4));
+	private static DeductionCapability dc_R3 = new DeductionCapability(R3, Set.of(deduc4));
+	private static DeductionCapability dc_HI = new DeductionCapability(HI, Set.of(deduc4));
+	private static Set<DeductionCapability> dedSet4 = Stream.of(dc_MC, dc_R1, dc_R2, dc_R3, dc_CR, dc_HI).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Statements
+	private static Property res_prop1 = new Property(PropertyType.NOTPURP, CR);
+	private static Property res_prop2 = new Property(PropertyType.NOTPURP, MC);
+	//TODO more?
+	private static Set<Property> pSet4 = Stream.of(res_prop1, res_prop2).collect(Collectors.toCollection(LinkedHashSet::new));
+
+
 
 	/**
 	 * Method to load one of the case studies.
@@ -535,6 +686,20 @@ public class ArchLoader {
 			archFunc.setdedSet(dedSet3);
 			archFunc.setpSet(pSet3);
 			archFunc.setcomposSet(composSet3);
+			break;
+		case MRR:
+			// fourth case study: medical research register
+			archFunc.setcSet(cSet4);
+			archFunc.setvSet(vSet4);
+			archFunc.settSet(tSet4);
+			archFunc.seteSet(eSet4);
+			archFunc.settrustSet(trustSet4);
+			archFunc.setstSet(stSet4);
+			archFunc.setaSet(aSet4);
+			archFunc.setdSet(dSet4);
+			archFunc.setdedSet(dedSet4);
+			archFunc.setpSet(pSet4);
+			archFunc.setPurpHier(purpHier);
 			break;
 		default:
 			break;
