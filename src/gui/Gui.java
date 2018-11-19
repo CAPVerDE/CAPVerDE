@@ -62,6 +62,8 @@ import architecture.Trust;
 import architecture.Variable;
 import architecture.Equation.Type;
 import architecture.Proof;
+import architecture.Purpose;
+import architecture.PurposeHierarchy;
 import architecture.Term.Operator;
 import architecture.Term.OperatorType;
 import diagrams.ComponentFigure;
@@ -75,6 +77,14 @@ import utils.SaveLoadArch;
  * Also updates all tables, etc with the ArchitectureFunctions lists.
  */
 public class Gui {
+
+	/**
+	 * Flag to indicate the OS.
+	 * As SWT displays dropdowns differently than windows, 
+	 * this flag has to be set for the GUI to work on os X.
+	 * If this flag is set for windows, the GUI still works but very inefficient.
+	 */
+	public final static boolean isMac = false;
 
 	/**
 	 * The types of message boxes.
@@ -91,7 +101,7 @@ public class Gui {
 	 * The different types of objects, like components, variables, or properties.
 	 */
 	private enum ObjectType {
-		COMP, VAR, TERM, EQ, TRUST, STMT, ACT, DEP, DED, PROP;
+		COMP, VAR, TERM, EQ, TRUST, STMT, ACT, DEP, DED, PROP, PURP;
 	}
 
 	// class fields
@@ -133,7 +143,7 @@ public class Gui {
 		// the top line for all extra options like save,load,edit,finish,draw
 		Composite top = new Composite(everything, SWT.BORDER);
 		top.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-		top.setLayout(new GridLayout(5, false));
+		top.setLayout(new GridLayout(6, false));
 		top.setBackground(display.getSystemColor(SWT.COLOR_GRAY));
 
 		// finish
@@ -156,15 +166,16 @@ public class Gui {
 		load.setLayout(new GridLayout(2, false));
 		load.setText("Load Example Architectures");
 
-		Combo examples = new Combo(load, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo examples = new Combo(load, SWT.DROP_DOWN | SWT.READ_ONLY);
 		examples.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		examples.setText("Example Case Studies");
 		examples.add(CaseStudy.SEM.toString());
 		examples.add(CaseStudy.AW.toString());
 		examples.add(CaseStudy.PDR.toString());
 		examples.add(CaseStudy.MRR.toString());
-		// examples.addListener(SWT.DROP_DOWN, event -> updateCaseStudies(archFunc,
-		// examples));
+		if (!isMac) {
+			// examples.addListener(SWT.DROP_DOWN, event -> updateCaseStudies(archFunc, examples));
+		}
 
 		Button loadButton = new Button(load, SWT.PUSH);
 		loadButton.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -243,6 +254,18 @@ public class Gui {
 		editBtn.addListener(SWT.Selection, event -> drawButton.setEnabled(false));
 		finishButton.addListener(SWT.Selection, event -> drawButton.setEnabled(true));
 
+		// show purpose hierarchy
+		Group purpHier = new Group(top, SWT.SHADOW_IN);
+		purpHier.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		purpHier.setLayout(new GridLayout(1, false));
+		purpHier.setText("Purpose Hierarchy");
+
+		Button hierButton = new Button(purpHier, SWT.PUSH);
+		hierButton.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
+		hierButton.setText("Show");
+		hierButton.setToolTipText("Show the purpose hierarchy as lattice.");
+		hierButton.addListener(SWT.Selection, event -> showHierarchy());
+
 		// tab folder
 		TabFolder folder = new TabFolder(everything, SWT.NONE);
 		folder.setLayout(new GridLayout(1, false));
@@ -281,14 +304,14 @@ public class Gui {
 		Button compAdd = new Button(components, SWT.PUSH);
 		compAdd.setText("Add");
 		compAdd.addListener(SWT.Selection, event -> archFunc.addComponent(compName.getText()));
-		
+
 		/*
 		Combo Test1 = new Combo(components, SWT.SIMPLE | SWT.READ_ONLY);
 		Test1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		String[] items1 = new String[] { "test1", "test2" };
 		Test1.setItems(items1);
 		//Test1.addListener(SWT.DROP_DOWN, event -> tmpFct(Test1));
-		
+
 		Combo Test2 = new Combo(components, SWT.SIMPLE | SWT.READ_ONLY);
 		Test2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		String[] items2 = new String[] { "test1", "test2" };
@@ -298,7 +321,7 @@ public class Gui {
 		Button testAdd = new Button(components, SWT.PUSH);
 		testAdd.setText("Add");
 		testAdd.addListener(SWT.Selection, event -> System.out.println("Test: " + Test2.getItem(Test2.getSelectionIndex())));
-*/
+		 */
 
 		// second line
 		Group variables = new Group(left, SWT.SHADOW_IN);
@@ -334,7 +357,7 @@ public class Gui {
 		Button tertiary = new Button(opType, SWT.RADIO);
 		tertiary.setText("tertiary");
 
-		Combo operator = new Combo(subterms, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo operator = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
 		operator.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		operator.setText("Operator");
 		operator.add("FUNC");
@@ -365,32 +388,41 @@ public class Gui {
 		});*/
 		funcName.addMouseListener(mouseListener);
 
-		Combo term1 = new Combo(subterms, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo term1 = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
 		term1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 2));
 		term1.setText("first Term");
 		term1.setToolTipText("first Term");
-		//term1.addListener(SWT.DROP_DOWN, event -> updateTerms(term1)); //Selection
-		varAdd.addListener(SWT.Selection, event -> updateTerms(term1));
+		if (!isMac) {
+			term1.addListener(SWT.DROP_DOWN, event -> updateTerms(term1));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateTerms(term1));
+		}
 
-		Combo term2 = new Combo(subterms, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo term2 = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
 		term2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 2));
 		term2.setText("second Term");
 		term2.setEnabled(false);
-		//term2.addListener(SWT.DROP_DOWN, event -> updateTerms(term2));
+		if (!isMac) {
+			term2.addListener(SWT.DROP_DOWN, event -> updateTerms(term2));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateTerms(term2));
+		}
 		unary.addListener(SWT.Selection, event -> term2.setEnabled(false));
 		binary.addListener(SWT.Selection, event -> term2.setEnabled(true));
 		tertiary.addListener(SWT.Selection, event -> term2.setEnabled(true));
-		varAdd.addListener(SWT.Selection, event -> updateTerms(term2));
 
-		Combo term3 = new Combo(subterms, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo term3 = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
 		term3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		term3.setText("third Term");
 		term3.setEnabled(false);
-		//term3.addListener(SWT.DROP_DOWN, event -> updateTerms(term3));
+		if (!isMac) {
+			term3.addListener(SWT.DROP_DOWN, event -> updateTerms(term3));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateTerms(term3));
+		}
 		unary.addListener(SWT.Selection, event -> term3.setEnabled(false));
 		binary.addListener(SWT.Selection, event -> term3.setEnabled(false));
 		tertiary.addListener(SWT.Selection, event -> term3.setEnabled(true));
-		varAdd.addListener(SWT.Selection, event -> updateTerms(term3));
 
 		Button termAdd = new Button(subterms, SWT.PUSH);
 		termAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -423,55 +455,67 @@ public class Gui {
 		eqName.setToolTipText("The name of the equation");
 		eqName.addMouseListener(mouseListener);
 
-		Combo eq1 = new Combo(equations, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo eq1 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
 		eq1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		eq1.setText("first Equation");
 		eq1.setEnabled(false);
-		//eq1.addListener(SWT.DROP_DOWN, event -> updateEquations(eq1));
+		if (!isMac) {
+			eq1.addListener(SWT.DROP_DOWN, event -> updateEquations(eq1));
+		}
 		conjunc.addListener(SWT.Selection, event -> eq1.setEnabled(true));
 		equal.addListener(SWT.Selection, event -> eq1.setEnabled(false));
 
 		Label and = new Label(equations, SWT.CENTER);
 		and.setText("and");
 
-		Combo eq2 = new Combo(equations, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo eq2 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
 		eq2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		eq2.setText("second Equation");
 		eq2.setEnabled(false);
-		//eq2.addListener(SWT.DROP_DOWN, event -> updateEquations(eq2));
+		if (!isMac) {
+			eq2.addListener(SWT.DROP_DOWN, event -> updateEquations(eq2));
+		}
 		conjunc.addListener(SWT.Selection, event -> eq2.setEnabled(true));
 		equal.addListener(SWT.Selection, event -> eq2.setEnabled(false));
 
 		Label comma = new Label(equations, SWT.CENTER);
 		comma.setText(",");
 
-		Combo t1 = new Combo(equations, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo t1 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
 		t1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		t1.setText("first Term");
-		//t1.addListener(SWT.DROP_DOWN, event -> updateTerms(t1));
+		if (!isMac) {
+			t1.addListener(SWT.DROP_DOWN, event -> updateTerms(t1));
+		} else {
+			termAdd.addListener(SWT.Selection, event -> updateTerms(t1));
+			varAdd.addListener(SWT.Selection, event -> updateTerms(t1));
+		}
 		conjunc.addListener(SWT.Selection, event -> t1.setEnabled(false));
 		equal.addListener(SWT.Selection, event -> t1.setEnabled(true));
-		varAdd.addListener(SWT.Selection, event -> updateTerms(t1));
-		termAdd.addListener(SWT.Selection, event -> updateTerms(t1));
 
 		Label equals = new Label(equations, SWT.CENTER);
 		equals.setText("=");
 
-		Combo t2 = new Combo(equations, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo t2 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
 		t2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		t2.setText("second Term");
-		//t2.addListener(SWT.DROP_DOWN, event -> updateTerms(t2));
+		if (!isMac) {
+			t2.addListener(SWT.DROP_DOWN, event -> updateTerms(t2));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateTerms(t2));
+			termAdd.addListener(SWT.Selection, event -> updateTerms(t2));
+		}
 		conjunc.addListener(SWT.Selection, event -> t2.setEnabled(false));
 		equal.addListener(SWT.Selection, event -> t2.setEnabled(true));
-		varAdd.addListener(SWT.Selection, event -> updateTerms(t2));
-		termAdd.addListener(SWT.Selection, event -> updateTerms(t2));
 
 		Button eqAdd = new Button(equations, SWT.PUSH);
 		eqAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
 		eqAdd.setText("Add");
 		eqAdd.addListener(SWT.Selection, event -> handleEquations(conjunc, eqName, eq1, eq2, t1, t2));
-		eqAdd.addListener(SWT.Selection, event -> updateEquations(eq1));
-		eqAdd.addListener(SWT.Selection, event -> updateEquations(eq2));
+		if (isMac) {
+			eqAdd.addListener(SWT.Selection, event -> updateEquations(eq1));
+			eqAdd.addListener(SWT.Selection, event -> updateEquations(eq2));
+		}
 
 		// fifth line
 		Group trusts = new Group(left, SWT.SHADOW_IN);
@@ -479,20 +523,26 @@ public class Gui {
 		trusts.setLayout(new GridLayout(4, false));
 		trusts.setText("Trust Relations");
 
-		Combo c1 = new Combo(trusts, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo c1 = new Combo(trusts, SWT.DROP_DOWN | SWT.READ_ONLY);
 		c1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		c1.setText("Component1");
-		//c1.addListener(SWT.DROP_DOWN, event -> updateComponents(c1));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(c1));
+		if (!isMac) {
+			c1.addListener(SWT.DROP_DOWN, event -> updateComponents(c1));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(c1));
+		}
 
 		Label trust = new Label(trusts, SWT.CENTER);
 		trust.setText("blindly trusts");
 
-		Combo c2 = new Combo(trusts, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo c2 = new Combo(trusts, SWT.DROP_DOWN | SWT.READ_ONLY);
 		c2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		c2.setText("Component2");
-		//c2.addListener(SWT.DROP_DOWN, event -> updateComponents(c2));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(c2));
+		if (!isMac) {
+			c2.addListener(SWT.DROP_DOWN, event -> updateComponents(c2));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(c2));
+		}
 
 		Button trustAdd = new Button(trusts, SWT.PUSH);
 		trustAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -515,11 +565,14 @@ public class Gui {
 		Button pro = new Button(stType, SWT.RADIO);
 		pro.setText("proof");
 
-		Combo c3 = new Combo(statements, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo c3 = new Combo(statements, SWT.DROP_DOWN | SWT.READ_ONLY);
 		c3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		c3.setText("Component");
-		//c3.addListener(SWT.DROP_DOWN, event -> updateComponents(c3));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(c3));
+		if (!isMac) {
+			c3.addListener(SWT.DROP_DOWN, event -> updateComponents(c3));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(c3));
+		}
 
 		Label stLabel = new Label(statements, SWT.CENTER);
 		stLabel.setText("attests/proves");
@@ -559,7 +612,48 @@ public class Gui {
 		stAdd.addListener(SWT.Selection, event -> handleStatement(att, c3, eq3, att1));
 		stAdd.addListener(SWT.Selection, event -> updateAttestsTab(att1));
 
-		// seventh line +
+		// seventh line
+		Group purposes = new Group(left, SWT.SHADOW_IN);
+		purposes.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		purposes.setLayout(new GridLayout(64, false));
+		purposes.setText("Purposes");
+
+		Text purpName = new Text(purposes, SWT.SINGLE);
+		purpName.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
+		purpName.setText("purpose name");
+		purpName.setToolTipText("The name of the purpose");
+		purpName.addMouseListener(mouseListener);
+
+		Label withLabel = new Label(purposes, SWT.CENTER);
+		withLabel.setText("with");
+		
+		Table vars1 = new Table(purposes, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		vars1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 10, 10));
+		vars1.setToolTipText("Variables");
+		varAdd.addListener(SWT.Selection, event -> updateVarsTab(vars1));
+
+		Label parentsLabel = new Label(purposes, SWT.CENTER);
+		parentsLabel.setText("Parents:");
+
+		Table purps1 = new Table(purposes, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		purps1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 20, 10));
+		purps1.setToolTipText("Parent Purposes");
+
+		Label childrenLabel = new Label(purposes, SWT.CENTER);
+		childrenLabel.setText("Children:");
+
+		Table purps2 = new Table(purposes, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		purps2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 20, 10));
+		purps2.setToolTipText("Child Purposes");
+
+		Button purpAdd = new Button(purposes, SWT.PUSH);
+		purpAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
+		purpAdd.setText("Add");
+		purpAdd.addListener(SWT.Selection, event -> handlePurpose(purpName, vars1, purps1, purps2));
+		purpAdd.addListener(SWT.Selection, event -> updatePurpsTab(purps1));
+		purpAdd.addListener(SWT.Selection, event -> updatePurpsTab(purps2));
+
+		// eighth line +
 		Group actions = new Group(left, SWT.SHADOW_IN);
 		actions.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		actions.setLayout(new GridLayout(1, false));
@@ -571,20 +665,26 @@ public class Gui {
 		has.setLayout(new GridLayout(4, false));
 		has.setText("Has");
 
-		Combo comp = new Combo(has, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo comp = new Combo(has, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp.setText("Component");
-		//comp.addListener(SWT.DROP_DOWN, event -> updateComponents(comp));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(comp));
+		if (!isMac) {
+			comp.addListener(SWT.DROP_DOWN, event -> updateComponents(comp));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(comp));
+		}
 
 		Label hasLab = new Label(has, SWT.CENTER);
 		hasLab.setText("has");
 
-		Combo var = new Combo(has, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo var = new Combo(has, SWT.DROP_DOWN | SWT.READ_ONLY);
 		var.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		var.setText("Variable");
-		//var.addListener(SWT.DROP_DOWN, event -> updateVariables(var));
-		varAdd.addListener(SWT.Selection, event -> updateVariables(var));
+		if (!isMac) {
+			var.addListener(SWT.DROP_DOWN, event -> updateVariables(var));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateVariables(var));
+		}
 
 		Button hasAdd = new Button(has, SWT.PUSH);
 		hasAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -597,20 +697,26 @@ public class Gui {
 		compute.setLayout(new GridLayout(4, false));
 		compute.setText("Compute");
 
-		Combo comp1 = new Combo(compute, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo comp1 = new Combo(compute, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comp1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp1.setText("Component");
-		//comp1.addListener(SWT.DROP_DOWN, event -> updateComponents(comp1));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(comp1));
+		if (!isMac) {
+			comp1.addListener(SWT.DROP_DOWN, event -> updateComponents(comp1));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(comp1));
+		}
 
 		Label computeLab = new Label(compute, SWT.CENTER);
 		computeLab.setText("computes");
 
-		Combo eq = new Combo(compute, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo eq = new Combo(compute, SWT.DROP_DOWN | SWT.READ_ONLY);
 		eq.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		eq.setText("new Equation");
-		//eq.addListener(SWT.DROP_DOWN, event -> updateEquations(eq));
-		eqAdd.addListener(SWT.Selection, event -> updateEquations(eq));
+		if (!isMac) {
+			eq.addListener(SWT.DROP_DOWN, event -> updateEquations(eq));
+		} else {
+			eqAdd.addListener(SWT.Selection, event -> updateEquations(eq));
+		}
 
 		Button computeAdd = new Button(compute, SWT.PUSH);
 		computeAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -624,11 +730,14 @@ public class Gui {
 		receive.setLayout(new GridLayout(75, false));
 		receive.setText("Receive");
 
-		Combo comp2 = new Combo(receive, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo comp2 = new Combo(receive, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comp2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp2.setText("Component");
-		//comp2.addListener(SWT.DROP_DOWN, event -> updateComponents(comp2));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(comp2));
+		if (!isMac) {
+			comp2.addListener(SWT.DROP_DOWN, event -> updateComponents(comp2));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(comp2));
+		}
 
 		Label receiveLab = new Label(receive, SWT.CENTER);
 		receiveLab.setText("receives");
@@ -649,11 +758,14 @@ public class Gui {
 		Label fromLab = new Label(receive, SWT.CENTER);
 		fromLab.setText("from");
 
-		Combo comp3 = new Combo(receive, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo comp3 = new Combo(receive, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comp3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp3.setText("Component");
-		//comp3.addListener(SWT.DROP_DOWN, event -> updateComponents(comp3));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(comp3));
+		if (!isMac) {
+			comp3.addListener(SWT.DROP_DOWN, event -> updateComponents(comp3));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(comp3));
+		}
 
 		Button receiveAdd = new Button(receive, SWT.PUSH);
 		receiveAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -666,11 +778,14 @@ public class Gui {
 		check.setLayout(new GridLayout(150, false));
 		check.setText("Check");
 
-		Combo comp4 = new Combo(check, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo comp4 = new Combo(check, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comp4.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp4.setText("Component");
-		//comp4.addListener(SWT.DROP_DOWN, event -> updateComponents(comp4));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(comp4));
+		if (!isMac) {
+			comp4.addListener(SWT.DROP_DOWN, event -> updateComponents(comp4));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(comp4));
+		}
 
 		Label checksLab = new Label(check, SWT.CENTER);
 		checksLab.setText("checks");
@@ -701,34 +816,43 @@ public class Gui {
 		proof.setText("proof");
 		proof.setSelection(true);
 
-		Combo comp10 = new Combo(verify, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo comp10 = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comp10.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp10.setText("Component");
-		//comp10.addListener(SWT.DROP_DOWN, event -> updateComponents(comp10));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(comp10));
+		if (!isMac) {
+			comp10.addListener(SWT.DROP_DOWN, event -> updateComponents(comp10));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(comp10));
+		}
 
 		Label verifLab = new Label(verify, SWT.CENTER);
 		verifLab.setText("verifies");
 
-		Combo proofs = new Combo(verify, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo proofs = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
 		proofs.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		proofs.setText("Proofs");
-		//proofs.addListener(SWT.DROP_DOWN, event -> updateProofs(proofs));
+		if (!isMac) {
+			proofs.addListener(SWT.DROP_DOWN, event -> updateProofs(proofs));
+		} else {
+			stAdd.addListener(SWT.Selection, event -> updateProofs(proofs));
+		}
 		attest.addListener(SWT.Selection, event -> proofs.setEnabled(false));
 		proof.addListener(SWT.Selection, event -> proofs.setEnabled(true));
-		stAdd.addListener(SWT.Selection, event -> updateProofs(proofs));
 
 		Label orLabel2 = new Label(verify, SWT.CENTER);
 		orLabel2.setText("or");
 
-		Combo attests = new Combo(verify, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo attests = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
 		attests.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		attests.setText("Attestations");
-		//attests.addListener(SWT.DROP_DOWN, event -> updateAttests(attests));
+		if (!isMac) {
+			attests.addListener(SWT.DROP_DOWN, event -> updateAttests(attests));
+		} else {
+			stAdd.addListener(SWT.Selection, event -> updateAttests(attests));
+		}
 		attests.setEnabled(false);
 		attest.addListener(SWT.Selection, event -> attests.setEnabled(true));
 		proof.addListener(SWT.Selection, event -> attests.setEnabled(false));
-		stAdd.addListener(SWT.Selection, event -> updateAttests(attests));
 
 		Button verifAdd = new Button(verify, SWT.PUSH);
 		verifAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -741,20 +865,26 @@ public class Gui {
 		delete.setLayout(new GridLayout(75, false));
 		delete.setText("Delete");
 
-		Combo comp7 = new Combo(delete, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo comp7 = new Combo(delete, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comp7.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp7.setText("Component");
-		//comp7.addListener(SWT.DROP_DOWN, event -> updateComponents(comp7));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(comp7));
+		if (!isMac) {
+			comp7.addListener(SWT.DROP_DOWN, event -> updateComponents(comp7));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(comp7));
+		}
 
 		Label deleteLab = new Label(delete, SWT.CENTER);
 		deleteLab.setText("deletes");
 
-		Combo var1 = new Combo(delete, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo var1 = new Combo(delete, SWT.DROP_DOWN | SWT.READ_ONLY);
 		var1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		var1.setText("Variable");
-		//var1.addListener(SWT.DROP_DOWN, event -> updateVariables(var1));
-		varAdd.addListener(SWT.Selection, event -> updateVariables(var1));
+		if (!isMac) {
+			var1.addListener(SWT.DROP_DOWN, event -> updateVariables(var1));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateVariables(var1));
+		}
 
 		Button deleteAdd = new Button(delete, SWT.PUSH);
 		deleteAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -767,20 +897,26 @@ public class Gui {
 		deps.setLayout(new GridLayout(86, false));
 		deps.setText("Dependence Relations");
 
-		Combo comp9 = new Combo(deps, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo comp9 = new Combo(deps, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comp9.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp9.setText("Component");
-		//comp9.addListener(SWT.DROP_DOWN, event -> updateComponents(comp9));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(comp9));
+		if (!isMac) {
+			comp9.addListener(SWT.DROP_DOWN, event -> updateComponents(comp9));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(comp9));
+		}
 
 		Label canLab = new Label(deps, SWT.CENTER);
 		canLab.setText("has the computational power to arrive");
 
-		Combo var3 = new Combo(deps, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo var3 = new Combo(deps, SWT.DROP_DOWN | SWT.READ_ONLY);
 		var3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		var3.setText("Variable");
-		//var3.addListener(SWT.DROP_DOWN, event -> updateVariables(var3));
-		varAdd.addListener(SWT.Selection, event -> updateVariables(var3));
+		if (!isMac) {
+			var3.addListener(SWT.DROP_DOWN, event -> updateVariables(var3));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateVariables(var3));
+		}
 
 		Label fromLab2 = new Label(deps, SWT.CENTER);
 		fromLab2.setText("from");
@@ -824,12 +960,15 @@ public class Gui {
 		Label dedLabel = new Label(mydeds, SWT.CENTER);
 		dedLabel.setText("can be used to deduce this equation:");
 
-		Combo conclusion = new Combo(mydeds, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo conclusion = new Combo(mydeds, SWT.DROP_DOWN | SWT.READ_ONLY);
 		conclusion.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		conclusion.setText("Conclusion Equation");
-		//conclusion.addListener(SWT.DROP_DOWN, event -> updateEquations(conclusion));
-		eqAdd.addListener(SWT.Selection, event -> updateEquations(conclusion));
-
+		if (!isMac) {
+			conclusion.addListener(SWT.DROP_DOWN, event -> updateEquations(conclusion));
+		} else {
+			eqAdd.addListener(SWT.Selection, event -> updateEquations(conclusion));
+		}
+		
 		Label withLab2 = new Label(mydeds, SWT.CENTER);
 		withLab2.setText("with the probability of ");
 
@@ -850,11 +989,14 @@ public class Gui {
 		deds.setLayout(new GridLayout(64, false));
 		deds.setText("Deductions");
 
-		Combo comp8 = new Combo(deds, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo comp8 = new Combo(deds, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comp8.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp8.setText("Component");
-		//comp8.addListener(SWT.DROP_DOWN, event -> updateComponents(comp8));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(comp8));
+		if (!isMac) {
+			comp8.addListener(SWT.DROP_DOWN, event -> updateComponents(comp8));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(comp8));
+		}
 
 		Label can2Lab = new Label(deds, SWT.CENTER);
 		can2Lab.setText("can deduce equations using");
@@ -974,6 +1116,22 @@ public class Gui {
 		stRemove.addListener(SWT.Selection, event -> handleRemove(ObjectType.STMT, stmtTable));
 
 		// seventh line
+		Group purposes2 = new Group(right, SWT.SHADOW_IN);
+		purposes2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		purposes2.setLayout(new GridLayout(1, true));
+		purposes2.setText("Purposes");
+
+		Table purposeTable = new Table(purposes2, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		purposeTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 5));
+		purposeTable.setToolTipText("List of all proofs and attestations");
+		purpAdd.addListener(SWT.Selection, event -> updatePurpsTab(purposeTable));
+
+		Button purpRemove = new Button(purposes2, SWT.PUSH);
+		purpRemove.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
+		purpRemove.setText("Remove");
+		purpRemove.addListener(SWT.Selection, event -> handleRemove(ObjectType.PURP, purposeTable));
+
+		// eighth line
 		Group actions2 = new Group(right, SWT.SHADOW_IN);
 		actions2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		actions2.setLayout(new GridLayout(1, true));
@@ -994,7 +1152,7 @@ public class Gui {
 		actRemove.setText("Remove");
 		actRemove.addListener(SWT.Selection, event -> handleRemove(ObjectType.ACT, actionTable));
 
-		// eighth line
+		// ninth line
 		Group deps2 = new Group(right, SWT.SHADOW_IN);
 		deps2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		deps2.setLayout(new GridLayout(1, true));
@@ -1066,11 +1224,14 @@ public class Gui {
 		hasProp.setLayout(new GridLayout(7, false));
 		hasProp.setText("Has");
 
-		Combo compProp = new Combo(hasProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo compProp = new Combo(hasProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		compProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		compProp.setText("Component");
-		//compProp.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(compProp));
+		if (!isMac) {
+			compProp.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(compProp));
+		}
 
 		Label hasLabProp = new Label(hasProp, SWT.CENTER);
 		hasLabProp.setText("has with probability ");
@@ -1081,11 +1242,14 @@ public class Gui {
 		prob3.setToolTipText("The minimal probability of the has property");
 		prob3.addMouseListener(mouseListener);
 
-		Combo varProp = new Combo(hasProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo varProp = new Combo(hasProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		varProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		varProp.setText("Variable");
-		//varProp.addListener(SWT.DROP_DOWN, event -> updateVariables(varProp));
-		varAdd.addListener(SWT.Selection, event -> updateVariables(varProp));
+		if (!isMac) {
+			varProp.addListener(SWT.DROP_DOWN, event -> updateVariables(varProp));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateVariables(varProp));
+		}
 
 		Button hasPropAdd = new Button(hasProp, SWT.PUSH);
 		hasPropAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -1099,11 +1263,14 @@ public class Gui {
 		knowsProp.setLayout(new GridLayout(7, false));
 		knowsProp.setText("Knows");
 
-		Combo compProp1 = new Combo(knowsProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo compProp1 = new Combo(knowsProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		compProp1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		compProp1.setText("Component");
-		//compProp1.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp1));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(compProp1));
+		if (!isMac) {
+			compProp1.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp1));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(compProp1));
+		}
 
 		Label knowsLabProp = new Label(knowsProp, SWT.CENTER);
 		knowsLabProp.setText("knows with probability ");
@@ -1114,11 +1281,14 @@ public class Gui {
 		prob4.setToolTipText("The minimal probability of the knows property");
 		prob4.addMouseListener(mouseListener);
 
-		Combo eqProp = new Combo(knowsProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo eqProp = new Combo(knowsProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		eqProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		eqProp.setText("Equation");
-		//eqProp.addListener(SWT.DROP_DOWN, event -> updateEquations(eqProp));
-		eqAdd.addListener(SWT.Selection, event -> updateEquations(eqProp));
+		if (!isMac) {
+			eqProp.addListener(SWT.DROP_DOWN, event -> updateEquations(eqProp));
+		} else {
+			eqAdd.addListener(SWT.Selection, event -> updateEquations(eqProp));
+		}
 
 		Button knowsPropAdd = new Button(knowsProp, SWT.PUSH);
 		knowsPropAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -1132,20 +1302,26 @@ public class Gui {
 		notsharedProp.setLayout(new GridLayout(5, false));
 		notsharedProp.setText("NotShared");
 
-		Combo compProp3 = new Combo(notsharedProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo compProp3 = new Combo(notsharedProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		compProp3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		compProp3.setText("Component");
-		//compProp3.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp3));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(compProp3));
+		if (!isMac) {
+			compProp3.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp3));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(compProp3));
+		}
 
 		Label notSharedLabProp = new Label(notsharedProp, SWT.CENTER);
 		notSharedLabProp.setText("does not share");
 
-		Combo varProp1 = new Combo(notsharedProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo varProp1 = new Combo(notsharedProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		varProp1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		varProp1.setText("Variable");
-		//varProp1.addListener(SWT.DROP_DOWN, event -> updateVariables(varProp1));
-		varAdd.addListener(SWT.Selection, event -> updateVariables(varProp1));
+		if (!isMac) {
+			varProp1.addListener(SWT.DROP_DOWN, event -> updateVariables(varProp1));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateVariables(varProp1));
+		}
 
 		Label notSharedLabProp1 = new Label(notsharedProp, SWT.CENTER);
 		notSharedLabProp1.setText("with a third party");
@@ -1162,31 +1338,36 @@ public class Gui {
 		notstoredProp.setLayout(new GridLayout(6, false));
 		notstoredProp.setText("NotStored");
 
-		Combo compProp4 = new Combo(notstoredProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo compProp4 = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		compProp4.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		compProp4.setText("Component");
-		//compProp4.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp4));
-		compAdd.addListener(SWT.Selection, event -> updateComponents(compProp4));
+		if (!isMac) {
+			compProp4.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp4));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(compProp4));
+		}
 
 		Label notStoredLabProp = new Label(notstoredProp, SWT.CENTER);
 		notStoredLabProp.setText("does not store");
 
-		Combo varProp2 = new Combo(notstoredProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo varProp2 = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		varProp2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		varProp2.setText("Variable");
-		//varProp2.addListener(SWT.DROP_DOWN, event -> updateVariables(varProp2));
-		varAdd.addListener(SWT.Selection, event -> updateVariables(varProp2));
+		if (!isMac) {
+			varProp2.addListener(SWT.DROP_DOWN, event -> updateVariables(varProp2));
+		} else {
+			varAdd.addListener(SWT.Selection, event -> updateVariables(varProp2));
+		}
 
 		Label notStoredLabProp2 = new Label(notstoredProp, SWT.CENTER);
 		notStoredLabProp2.setText("with bound");
 
-		Combo boundProp = new Combo(notstoredProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo boundProp = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		boundProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		boundProp.setText("Bound");
 		for (int i=1; i<10; i++) {
 			boundProp.add("" + i);
 		}
-		//boundProp.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp4));
 
 		Button notStoredPropAdd = new Button(notstoredProp, SWT.PUSH);
 		notStoredPropAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -1195,7 +1376,7 @@ public class Gui {
 				event -> archFunc.addPropNotStored(compProp4.getText(), varProp2.getText(), boundProp.getText()));
 
 		//TODO new properties!
-		
+
 		// line negation
 		Group negProp = new Group(properties, SWT.SHADOW_IN);
 		negProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
@@ -1205,10 +1386,12 @@ public class Gui {
 		Label notLabProp = new Label(negProp, SWT.CENTER);
 		notLabProp.setText("NOT");
 
-		Combo propProp = new Combo(negProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo propProp = new Combo(negProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		propProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		propProp.setText("Property");
-		//propProp.addListener(SWT.DROP_DOWN, event -> updateProps(propProp));
+		if (!isMac) {
+			propProp.addListener(SWT.DROP_DOWN, event -> updateProps(propProp));
+		}
 
 		Button negPropAdd = new Button(negProp, SWT.PUSH);
 		negPropAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -1222,44 +1405,50 @@ public class Gui {
 		conjProp.setLayout(new GridLayout(84, false));
 		conjProp.setText("Composition");
 
-		Combo propProp1 = new Combo(conjProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo propProp1 = new Combo(conjProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		propProp1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		propProp1.setText("Property1");
-		//propProp1.addListener(SWT.DROP_DOWN, event -> updateProps(propProp1));
+		if (!isMac) {
+			propProp1.addListener(SWT.DROP_DOWN, event -> updateProps(propProp1));
+		}
 
 		Label andLabProp = new Label(conjProp, SWT.CENTER);
 		andLabProp.setText("AND");
 
-		Combo propProp2 = new Combo(conjProp, SWT.SIMPLE | SWT.READ_ONLY);
+		Combo propProp2 = new Combo(conjProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		propProp2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		propProp2.setText("Property2");
-		//propProp2.addListener(SWT.DROP_DOWN, event -> updateProps(propProp2));
+		if (!isMac) {
+			propProp2.addListener(SWT.DROP_DOWN, event -> updateProps(propProp2));
+		}
 
 		Button conjPropAdd = new Button(conjProp, SWT.PUSH);
 		conjPropAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
 		conjPropAdd.setText("Add");
 		conjPropAdd.addListener(
 				SWT.Selection, event -> archFunc.addPropConj(propProp1.getText(), propProp2.getText()));
-		
+
 		// Events for property combos
-		hasPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
-		knowsPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
-		notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
-		notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
-		negPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
-		conjPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
-		hasPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
-		knowsPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
-		notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
-		notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
-		negPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
-		conjPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
-		hasPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
-		knowsPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
-		notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
-		notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
-		negPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
-		conjPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
+		if (isMac) {
+			hasPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
+			knowsPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
+			notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
+			notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
+			negPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
+			conjPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
+			hasPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
+			knowsPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
+			notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
+			notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
+			negPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
+			conjPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
+			hasPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
+			knowsPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
+			notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
+			notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
+			negPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
+			conjPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
+		}
 
 		// second line
 		Group verification = new Group(left2, SWT.SHADOW_IN);
@@ -1267,16 +1456,19 @@ public class Gui {
 		verification.setLayout(new GridLayout(122, false));
 		verification.setText("Verification");
 
-		Combo prop = new Combo(verification, SWT.SIMPLE | SWT.H_SCROLL | SWT.READ_ONLY);
+		Combo prop = new Combo(verification, SWT.DROP_DOWN | SWT.H_SCROLL | SWT.READ_ONLY);
 		prop.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		prop.setText("Property");
-		//prop.addListener(SWT.DROP_DOWN, event -> updateProps(prop));
-		hasPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
-		knowsPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
-		notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
-		notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
-		negPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
-		conjPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
+		if (!isMac) {
+			prop.addListener(SWT.DROP_DOWN, event -> updateProps(prop));
+		} else {
+			hasPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
+			knowsPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
+			notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
+			notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
+			negPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
+			conjPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
+		}
 
 		Button verifyBtn = new Button(verification, SWT.PUSH);
 		verifyBtn.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -1334,6 +1526,7 @@ public class Gui {
 			public void widgetSelected(SelectionEvent event) {
 				if (showMessage(MessageType.WARN, "Should the architecture really be reset?")) {
 					reset();
+					//recursiveUpdate(folder);
 					verifiedProps.removeAll();
 					finishButton.setEnabled(true);
 					loadButton.setEnabled(true);
@@ -1404,44 +1597,10 @@ public class Gui {
 		resetBtn.addListener(SWT.Selection, event -> updateStatementsTab(stTable));
 		resetBtn.addListener(SWT.Selection, event -> updateAttestsTab(att1));
 		resetBtn.addListener(SWT.Selection, event -> updateEquationsTab(eq3));
-		resetBtn.addListener(SWT.Selection, event -> updateTerms(term1));
-		resetBtn.addListener(SWT.Selection, event -> updateTerms(term2));
-		resetBtn.addListener(SWT.Selection, event -> updateTerms(term3));
-		resetBtn.addListener(SWT.Selection, event -> updateEquations(eq1));
-		resetBtn.addListener(SWT.Selection, event -> updateEquations(eq2));
-		resetBtn.addListener(SWT.Selection, event -> updateTerms(t1));
-		resetBtn.addListener(SWT.Selection, event -> updateTerms(t2));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(c1));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(c2));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(c3));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(comp));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(comp1));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(comp2));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(comp3));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(comp4));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(comp7));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(comp8));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(comp9));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(comp10));
-		resetBtn.addListener(SWT.Selection, event -> updateVariables(var));
-		resetBtn.addListener(SWT.Selection, event -> updateEquations(eq));
-		resetBtn.addListener(SWT.Selection, event -> updateProofs(proofs));
-		resetBtn.addListener(SWT.Selection, event -> updateAttests(attests));
-		resetBtn.addListener(SWT.Selection, event -> updateVariables(var1));
-		resetBtn.addListener(SWT.Selection, event -> updateVariables(var3));
-		resetBtn.addListener(SWT.Selection, event -> updateEquations(conclusion));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp1));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp3));
-		resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp4));
-		resetBtn.addListener(SWT.Selection, event -> updateVariables(varProp));
-		resetBtn.addListener(SWT.Selection, event -> updateVariables(varProp1));
-		resetBtn.addListener(SWT.Selection, event -> updateVariables(varProp2));
-		resetBtn.addListener(SWT.Selection, event -> updateEquations(eqProp));
-		resetBtn.addListener(SWT.Selection, event -> updateProps(propProp));
-		resetBtn.addListener(SWT.Selection, event -> updateProps(propProp1));
-		resetBtn.addListener(SWT.Selection, event -> updateProps(propProp2));
-		resetBtn.addListener(SWT.Selection, event -> updateProps(prop));
+		resetBtn.addListener(SWT.Selection, event -> updatePurpsTab(purposeTable));
+		resetBtn.addListener(SWT.Selection, event -> updatePurpsTab(purps1));
+		resetBtn.addListener(SWT.Selection, event -> updatePurpsTab(purps2));
+		resetBtn.addListener(SWT.Selection, event -> updateVarsTab(vars1));
 		loadButton.addListener(SWT.Selection, event -> updatePropsTab(propTable));
 		loadButton2.addListener(SWT.Selection, event -> updatePropsTab(propTable));
 		//loadButton.addListener(SWT.Selection, event -> updateVerifiedTab(verifiedProps));
@@ -1482,82 +1641,136 @@ public class Gui {
 		loadButton2.addListener(SWT.Selection, event -> updateAttestsTab(att1));
 		loadButton.addListener(SWT.Selection, event -> updateEquationsTab(eq3));
 		loadButton2.addListener(SWT.Selection, event -> updateEquationsTab(eq3));
-		loadButton.addListener(SWT.Selection, event -> updateTerms(term1));
-		loadButton2.addListener(SWT.Selection, event -> updateTerms(term1));
-		loadButton.addListener(SWT.Selection, event -> updateTerms(term2));
-		loadButton2.addListener(SWT.Selection, event -> updateTerms(term2));
-		loadButton.addListener(SWT.Selection, event -> updateTerms(term3));
-		loadButton2.addListener(SWT.Selection, event -> updateTerms(term3));
-		loadButton.addListener(SWT.Selection, event -> updateTerms(t1));
-		loadButton2.addListener(SWT.Selection, event -> updateTerms(t1));
-		loadButton.addListener(SWT.Selection, event -> updateTerms(t2));
-		loadButton2.addListener(SWT.Selection, event -> updateTerms(t2));
-		loadButton.addListener(SWT.Selection, event -> updateEquations(eq1));
-		loadButton2.addListener(SWT.Selection, event -> updateEquations(eq1));
-		loadButton.addListener(SWT.Selection, event -> updateEquations(eq2));
-		loadButton2.addListener(SWT.Selection, event -> updateEquations(eq2));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(c1));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(c1));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(c2));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(c2));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(c3));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(c3));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(comp));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(comp));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(comp1));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(comp1));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(comp2));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(comp2));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(comp3));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(comp3));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(comp4));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(comp4));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(comp7));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(comp7));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(comp8));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(comp8));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(comp9));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(comp9));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(comp10));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(comp10));
-		loadButton.addListener(SWT.Selection, event -> updateVariables(var));
-		loadButton2.addListener(SWT.Selection, event -> updateVariables(var));
-		loadButton.addListener(SWT.Selection, event -> updateEquations(eq));
-		loadButton2.addListener(SWT.Selection, event -> updateEquations(eq));
-		loadButton.addListener(SWT.Selection, event -> updateProofs(proofs));
-		loadButton2.addListener(SWT.Selection, event -> updateProofs(proofs));
-		loadButton.addListener(SWT.Selection, event -> updateAttests(attests));
-		loadButton2.addListener(SWT.Selection, event -> updateAttests(attests));
-		loadButton.addListener(SWT.Selection, event -> updateVariables(var1));
-		loadButton2.addListener(SWT.Selection, event -> updateVariables(var1));
-		loadButton.addListener(SWT.Selection, event -> updateVariables(var3));
-		loadButton2.addListener(SWT.Selection, event -> updateVariables(var3));
-		loadButton.addListener(SWT.Selection, event -> updateEquations(conclusion));
-		loadButton2.addListener(SWT.Selection, event -> updateEquations(conclusion));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(compProp));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(compProp1));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(compProp3));
-		loadButton.addListener(SWT.Selection, event -> updateComponents(compProp4));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp1));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp3));
-		loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp4));
-		loadButton.addListener(SWT.Selection, event -> updateVariables(varProp));
-		loadButton.addListener(SWT.Selection, event -> updateVariables(varProp1));
-		loadButton.addListener(SWT.Selection, event -> updateVariables(varProp2));
-		loadButton2.addListener(SWT.Selection, event -> updateVariables(varProp));
-		loadButton2.addListener(SWT.Selection, event -> updateVariables(varProp1));
-		loadButton2.addListener(SWT.Selection, event -> updateVariables(varProp2));
-		loadButton.addListener(SWT.Selection, event -> updateEquations(eqProp));
-		loadButton2.addListener(SWT.Selection, event -> updateEquations(eqProp));
-		loadButton.addListener(SWT.Selection, event -> updateProps(propProp));
-		loadButton2.addListener(SWT.Selection, event -> updateProps(propProp));
-		loadButton.addListener(SWT.Selection, event -> updateProps(propProp1));
-		loadButton2.addListener(SWT.Selection, event -> updateProps(propProp1));
-		loadButton.addListener(SWT.Selection, event -> updateProps(propProp2));
-		loadButton2.addListener(SWT.Selection, event -> updateProps(propProp2));
-		loadButton.addListener(SWT.Selection, event -> updateProps(prop));
-		loadButton2.addListener(SWT.Selection, event -> updateProps(prop));
+		loadButton.addListener(SWT.Selection, event -> updatePurpsTab(purps1));
+		loadButton2.addListener(SWT.Selection, event -> updatePurpsTab(purps1));
+		loadButton.addListener(SWT.Selection, event -> updatePurpsTab(purps2));
+		loadButton2.addListener(SWT.Selection, event -> updatePurpsTab(purps2));
+		loadButton.addListener(SWT.Selection, event -> updatePurpsTab(purposeTable));
+		loadButton.addListener(SWT.Selection, event -> updatePurpsTab(purps1));
+		loadButton.addListener(SWT.Selection, event -> updatePurpsTab(purps2));
+		loadButton.addListener(SWT.Selection, event -> updateVarsTab(vars1));
+		loadButton2.addListener(SWT.Selection, event -> updatePurpsTab(purposeTable));
+		loadButton2.addListener(SWT.Selection, event -> updatePurpsTab(purps1));
+		loadButton2.addListener(SWT.Selection, event -> updatePurpsTab(purps2));
+		loadButton2.addListener(SWT.Selection, event -> updateVarsTab(vars1));
+		
+		if (isMac) {
+			loadButton.addListener(SWT.Selection, event -> updateTerms(term1));
+			loadButton2.addListener(SWT.Selection, event -> updateTerms(term1));
+			loadButton.addListener(SWT.Selection, event -> updateTerms(term2));
+			loadButton2.addListener(SWT.Selection, event -> updateTerms(term2));
+			loadButton.addListener(SWT.Selection, event -> updateTerms(term3));
+			loadButton2.addListener(SWT.Selection, event -> updateTerms(term3));
+			loadButton.addListener(SWT.Selection, event -> updateTerms(t1));
+			loadButton2.addListener(SWT.Selection, event -> updateTerms(t1));
+			loadButton.addListener(SWT.Selection, event -> updateTerms(t2));
+			loadButton2.addListener(SWT.Selection, event -> updateTerms(t2));
+			loadButton.addListener(SWT.Selection, event -> updateEquations(eq1));
+			loadButton2.addListener(SWT.Selection, event -> updateEquations(eq1));
+			loadButton.addListener(SWT.Selection, event -> updateEquations(eq2));
+			loadButton2.addListener(SWT.Selection, event -> updateEquations(eq2));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(c1));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(c1));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(c2));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(c2));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(c3));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(c3));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(comp));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(comp));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(comp1));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(comp1));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(comp2));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(comp2));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(comp3));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(comp3));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(comp4));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(comp4));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(comp7));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(comp7));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(comp8));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(comp8));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(comp9));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(comp9));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(comp10));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(comp10));
+			loadButton.addListener(SWT.Selection, event -> updateVariables(var));
+			loadButton2.addListener(SWT.Selection, event -> updateVariables(var));
+			loadButton.addListener(SWT.Selection, event -> updateEquations(eq));
+			loadButton2.addListener(SWT.Selection, event -> updateEquations(eq));
+			loadButton.addListener(SWT.Selection, event -> updateProofs(proofs));
+			loadButton2.addListener(SWT.Selection, event -> updateProofs(proofs));
+			loadButton.addListener(SWT.Selection, event -> updateAttests(attests));
+			loadButton2.addListener(SWT.Selection, event -> updateAttests(attests));
+			loadButton.addListener(SWT.Selection, event -> updateVariables(var1));
+			loadButton2.addListener(SWT.Selection, event -> updateVariables(var1));
+			loadButton.addListener(SWT.Selection, event -> updateVariables(var3));
+			loadButton2.addListener(SWT.Selection, event -> updateVariables(var3));
+			loadButton.addListener(SWT.Selection, event -> updateEquations(conclusion));
+			loadButton2.addListener(SWT.Selection, event -> updateEquations(conclusion));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(compProp));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(compProp1));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(compProp3));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(compProp4));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp1));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp3));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp4));
+			loadButton.addListener(SWT.Selection, event -> updateVariables(varProp));
+			loadButton.addListener(SWT.Selection, event -> updateVariables(varProp1));
+			loadButton.addListener(SWT.Selection, event -> updateVariables(varProp2));
+			loadButton2.addListener(SWT.Selection, event -> updateVariables(varProp));
+			loadButton2.addListener(SWT.Selection, event -> updateVariables(varProp1));
+			loadButton2.addListener(SWT.Selection, event -> updateVariables(varProp2));
+			loadButton.addListener(SWT.Selection, event -> updateEquations(eqProp));
+			loadButton2.addListener(SWT.Selection, event -> updateEquations(eqProp));
+			loadButton.addListener(SWT.Selection, event -> updateProps(propProp));
+			loadButton2.addListener(SWT.Selection, event -> updateProps(propProp));
+			loadButton.addListener(SWT.Selection, event -> updateProps(propProp1));
+			loadButton2.addListener(SWT.Selection, event -> updateProps(propProp1));
+			loadButton.addListener(SWT.Selection, event -> updateProps(propProp2));
+			loadButton2.addListener(SWT.Selection, event -> updateProps(propProp2));
+			loadButton.addListener(SWT.Selection, event -> updateProps(prop));
+			loadButton2.addListener(SWT.Selection, event -> updateProps(prop));
+			resetBtn.addListener(SWT.Selection, event -> updateTerms(term1));
+			resetBtn.addListener(SWT.Selection, event -> updateTerms(term2));
+			resetBtn.addListener(SWT.Selection, event -> updateTerms(term3));
+			resetBtn.addListener(SWT.Selection, event -> updateEquations(eq1));
+			resetBtn.addListener(SWT.Selection, event -> updateEquations(eq2));
+			resetBtn.addListener(SWT.Selection, event -> updateTerms(t1));
+			resetBtn.addListener(SWT.Selection, event -> updateTerms(t2));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(c1));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(c2));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(c3));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(comp));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(comp1));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(comp2));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(comp3));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(comp4));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(comp7));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(comp8));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(comp9));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(comp10));
+			resetBtn.addListener(SWT.Selection, event -> updateVariables(var));
+			resetBtn.addListener(SWT.Selection, event -> updateEquations(eq));
+			resetBtn.addListener(SWT.Selection, event -> updateProofs(proofs));
+			resetBtn.addListener(SWT.Selection, event -> updateAttests(attests));
+			resetBtn.addListener(SWT.Selection, event -> updateVariables(var1));
+			resetBtn.addListener(SWT.Selection, event -> updateVariables(var3));
+			resetBtn.addListener(SWT.Selection, event -> updateEquations(conclusion));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp1));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp3));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp4));
+			resetBtn.addListener(SWT.Selection, event -> updateVariables(varProp));
+			resetBtn.addListener(SWT.Selection, event -> updateVariables(varProp1));
+			resetBtn.addListener(SWT.Selection, event -> updateVariables(varProp2));
+			resetBtn.addListener(SWT.Selection, event -> updateEquations(eqProp));
+			resetBtn.addListener(SWT.Selection, event -> updateProps(propProp));
+			resetBtn.addListener(SWT.Selection, event -> updateProps(propProp1));
+			resetBtn.addListener(SWT.Selection, event -> updateProps(propProp2));
+			resetBtn.addListener(SWT.Selection, event -> updateProps(prop));
+		}
+
 
 		// finishing touch
 		sc.setContent(everything);
@@ -1603,6 +1816,137 @@ public class Gui {
 	private static void reset() {
 		// reset the architecture objects and all properties
 		archFunc = new ArchitectureFunctions();
+	}
+
+	private static void showHierarchy() {
+		// TODO Auto-generated method stub
+		PurposeHierarchy purpHier = archFunc.getPurpHier();
+		final Shell shell = new Shell(display);
+		shell.setMaximized(true);
+		shell.setText("Architecture Diagram");
+		final LightweightSystem lws = new LightweightSystem(shell);
+		Figure contents = new Figure();
+		XYLayout contentsLayout = new XYLayout();
+		// alternative layout
+		FlowLayout flowLayout = new FlowLayout();
+		flowLayout.setHorizontal(true);
+		flowLayout.setMinorAlignment(FlowLayout.ALIGN_LEFTTOP);
+		flowLayout.setMajorAlignment(FlowLayout.ALIGN_LEFTTOP);
+		// get bounds
+		org.eclipse.swt.graphics.Rectangle shellBounds = display.getBounds();
+		Monitor primary = display.getPrimaryMonitor();
+		flowLayout.setMajorSpacing(primary.getBounds().height / 4);
+		flowLayout.setMinorSpacing(primary.getBounds().width / 6);
+		if (purpHier.getPurposes().size() > 4) { 
+			contents.setLayoutManager(flowLayout);
+		} else {
+			contents.setLayoutManager(contentsLayout);
+		}
+
+		Font classFont = new Font(null, "Arial", 12, SWT.BOLD);
+		Font regularFont = new Font(null, "Arial", 10, SWT.NONE);
+
+		// go through hierarchy and add purposes
+		List<ComponentFigure> purposes = new ArrayList<ComponentFigure>();
+		for (Purpose p : purpHier.getPurposes()) {
+			// create a class object for the component
+			org.eclipse.draw2d.Label purposeName = new org.eclipse.draw2d.Label(p.toString());
+			purposeName.setFont(classFont);
+			final ComponentFigure purposeFigure = new ComponentFigure(purposeName);
+			contents.add(purposeFigure);
+			purposes.add(purposeFigure);
+		}
+		int right = primary.getBounds().width - 850; // 500
+		int middle = primary.getBounds().width - 350; // 200
+		int center = primary.getBounds().height - 150; // 200
+		int centertop = primary.getBounds().height - 100; // 200
+		int centerbot = primary.getBounds().height - 200; // 200
+		int bottom = primary.getBounds().height - 350; // - 350
+		int topLeft = 50; // 100
+		Rectangle rectTl = new Rectangle(topLeft, topLeft, -1, -1);
+		Rectangle rectTm = new Rectangle(middle, topLeft, -1, -1);
+		Rectangle rectTr = new Rectangle(right, topLeft, -1, -1);
+		Rectangle rectR = new Rectangle(right, center, -1, -1);
+		Rectangle rectM = new Rectangle(middle, center, -1, -1);
+		Rectangle rectMt = new Rectangle(middle, centertop, -1, -1);
+		Rectangle rectMb = new Rectangle(middle, centerbot, -1, -1);
+		Rectangle rectL = new Rectangle(topLeft, center, -1, -1);
+		Rectangle rectBl = new Rectangle(topLeft, bottom, -1, -1);
+		Rectangle rectBm = new Rectangle(middle, bottom, -1, -1);
+		Rectangle rectBr = new Rectangle(right, bottom, -1, -1);
+		if (purpHier.getPurposes().size() == 2) {
+			contentsLayout.setConstraint(purposes.get(0), rectTm);
+			contentsLayout.setConstraint(purposes.get(1), rectBm);
+		} else if (purpHier.getPurposes().size() ==  3) {
+			contentsLayout.setConstraint(purposes.get(0), rectTm);
+			contentsLayout.setConstraint(purposes.get(1), rectBm);
+			contentsLayout.setConstraint(purposes.get(2), rectM);
+		} else if (purpHier.getPurposes().size() >= 4) {
+			contentsLayout.setConstraint(purposes.get(0), rectTm);
+			contentsLayout.setConstraint(purposes.get(1), rectBm);
+			if (purpHier.getAM()[2][3]) {
+				contentsLayout.setConstraint(purposes.get(2), rectMt);
+				contentsLayout.setConstraint(purposes.get(3), rectMb);
+			} else if (purpHier.getAM()[3][2]) {
+				contentsLayout.setConstraint(purposes.get(2), rectMb);
+				contentsLayout.setConstraint(purposes.get(3), rectMt);
+			} else {
+				contentsLayout.setConstraint(purposes.get(2), rectL);
+				contentsLayout.setConstraint(purposes.get(3), rectR);
+			}
+		}
+
+		// go through the purpose hierarchy and add connections
+		List<PolylineConnection> connections = new ArrayList<PolylineConnection>();
+		/*
+		for (Action a : arch2draw.getInterComp_Actions()) {
+			Component c1 = null;
+			Component c2 = null;
+			switch (a.getAction()) {
+			case RECEIVE:
+				// fall through
+			case SPOTCHECK:
+				// fall through
+			case PRECEIVE:
+				// source and destination have to be defined
+				c1 = a.getComPartner();
+				c2 = a.getComponent();
+				break;
+			default:
+				// should not happen
+				break;
+			}
+			PolylineConnection connection = new PolylineConnection();
+			connection.setFont(regularFont);
+			connection.setLineWidth(2);
+			connection.setConnectionRouter(new FanRouter());
+			connection.setSourceAnchor(
+					new ChopboxAnchor(components.get(new ArrayList<Component>(arch2draw.getCompList()).indexOf(c1))));
+			connection.setTargetAnchor(
+					new ChopboxAnchor(components.get(new ArrayList<Component>(arch2draw.getCompList()).indexOf(c2))));
+			// adding the arrow-head
+			PolygonDecoration arrow = new PolygonDecoration();
+			arrow.setTemplate(PolygonDecoration.TRIANGLE_TIP);
+			arrow.setScale(20, 10);
+			connection.setTargetDecoration(arrow);
+			// adding the description
+			ConnectionEndpointLocator relationshipLocator2 = new ConnectionEndpointLocator(
+					connection, true);
+			org.eclipse.draw2d.Label relationshipLabel2 = new org.eclipse.draw2d.Label(a.toString());
+			// check if already a connection exists
+			PolylineConnection oldConnection = existsConnection(connection, connections);
+			if (oldConnection != null && oldConnection.getChildren().size() > 1) {
+				// add new label to existing one
+				String oldText = ((org.eclipse.draw2d.Label) oldConnection.getChildren().get(1)).getText();
+				((org.eclipse.draw2d.Label) oldConnection.getChildren().get(1)).setText(oldText + System.lineSeparator() + a.toString());
+			} else {
+				connection.add(relationshipLabel2, relationshipLocator2);
+				// put the finished connection onto the plane
+				contents.add(connection);
+				connections.add(connection);
+			}
+		}*/
+
 	}
 
 	/**
@@ -1945,6 +2289,50 @@ public class Gui {
 		}
 	}
 
+	private void recursiveUpdate(Control ctrl) {
+		// TODO test this
+		if (ctrl instanceof Combo){
+			// update the combo
+			Combo combo = (Combo) ctrl;
+			updateC(combo);
+		} if (ctrl instanceof Table) {
+			// update the table
+			Table table = (Table) ctrl;
+			updateT(table);
+		} else if (ctrl instanceof Composite) {
+			// for composites make recursive call
+			Composite comp = (Composite) ctrl;
+			for (Control c : comp.getChildren()) {
+				recursiveUpdate(c);
+			}
+		}
+	}
+
+	private void updateC(Combo combo) {
+		// TODO finish
+		switch(combo.getText()) {
+		case "Term":
+			combo.removeAll();
+			for (Term t : archFunc.gettSet()) {
+				combo.add(t.toString());
+			}
+			break;
+		}
+	}
+	
+	private void updateT(Table table) {
+		// TODO finish
+		switch(table.getToolTipText()) {
+		case "Term":
+			table.removeAll();
+			for (Term t : archFunc.gettSet()) {
+				TableItem item = new TableItem(table, SWT.NONE);
+				item.setText(t.toString());
+			}
+			break;
+		}
+	}
+
 	/**
 	 * Helper method that handles the selection via checkboxes.
 	 * @param e
@@ -1961,6 +2349,14 @@ public class Gui {
 					i.setChecked(false);
 				}
 			}
+		}
+	}
+
+	private void updatePurpsTab(Table purps) {
+		purps.removeAll();
+		for (Purpose p : archFunc.getpuSet()) {
+			TableItem item = new TableItem(purps, SWT.NONE);
+			item.setText(p.toString());
 		}
 	}
 
@@ -2323,6 +2719,9 @@ public class Gui {
 				case PROP:
 					archFunc.removeProp(i.getText());
 					break;
+				case PURP:
+					archFunc.removePurp(i.getText());
+					break;
 				default:
 					// nothing
 					break;
@@ -2433,6 +2832,32 @@ public class Gui {
 		}
 		// create the receive action and add it to the list
 		archFunc.addReceive(comp1.getText(), comp2.getText(), stSet, varSet);
+	}
+
+	private void handlePurpose(Text purpName, Table vars1, Table purps1, Table purps2) {
+		// TODO Auto-generated method stub
+		// prepare the right data types
+		Set<String> varSet = new LinkedHashSet<String>();
+		Set<String> purpSet1 = new LinkedHashSet<String>();
+		Set<String> purpSet2 = new LinkedHashSet<String>();
+		for (TableItem i : vars1.getItems()) {
+			if (i.getChecked()) {
+				varSet.add(i.getText());
+			}
+		}
+		for (TableItem i : purps1.getItems()) {
+			if (i.getChecked()) {
+				purpSet1.add(i.getText());
+			}
+		}
+		for (TableItem i : purps2.getItems()) {
+			if (i.getChecked()) {
+				purpSet2.add(i.getText());
+			}
+		}
+		// create the purpose and add it to the list
+		// also update the purpose hierarchy
+		archFunc.addPurpose(purpName.getText(), varSet, purpSet1, purpSet2);
 	}
 
 	/**

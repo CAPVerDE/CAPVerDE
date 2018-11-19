@@ -573,6 +573,7 @@ public class ArchLoader {
 	private static Purpose qolRes = new Purpose("QoLResearch", Stream.of(dp, ed).collect(Collectors.toCollection(LinkedHashSet::new)));
 	private static Purpose Profiling = new Purpose("Profiling", Stream.of(pmD).collect(Collectors.toCollection(LinkedHashSet::new)));
 	private static List<Purpose> puList = new ArrayList<Purpose>(List.of(medRes, cvRes, cRes, vRes, qolRes, Profiling));
+	private static Set<Purpose> puSet4 = new LinkedHashSet<Purpose>(Set.of(medRes, cvRes, cRes, vRes, qolRes, Profiling));
 	private static boolean [][] am = {{false, true, false, false, true, false}, {false, false, true, true, false, false},
 			{false, false, false, false, false, false}, {false, false, false, false, false, false},
 			{false, false, false, false, false, false}, {false, false, false, false, false, false}}; //TODO also include top and bot?
@@ -699,6 +700,7 @@ public class ArchLoader {
 			archFunc.setdSet(dSet4);
 			archFunc.setdedSet(dedSet4);
 			archFunc.setpSet(pSet4);
+			archFunc.setpuSet(puSet4);
 			archFunc.setPurpHier(purpHier);
 			break;
 		default:

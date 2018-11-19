@@ -200,5 +200,13 @@ public class PurposeHierarchy {
 	public boolean [][] getAM() {
 		return adjacencyMatrix;
 	}
+	
+	public Purpose getTop() {
+		return top;
+	}
+	
+	public Purpose getBot() {
+		return bot;
+	}
 
 }

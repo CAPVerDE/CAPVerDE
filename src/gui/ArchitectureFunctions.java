@@ -826,6 +826,36 @@ public class ArchitectureFunctions implements Serializable {
 		System.out.println(deducs);
 	}
 
+	public void addPurpose(String name, Set<String> varSet, Set<String> purpSet1, Set<String> purpSet2) {
+		// TODO Auto-generated method stub
+		Set<Variable> variables = new LinkedHashSet<Variable>();
+		Set<Purpose> parents = new LinkedHashSet<Purpose>();
+		Set<Purpose> children = new LinkedHashSet<Purpose>();
+		for (Variable var : vSet) {
+			for (String purpVar : varSet) {
+				if (var.toString().equals(purpVar)) {
+					variables.add(var);
+				}
+			}
+		}
+		for (Purpose p : puSet) {
+			for (String ps : purpSet1) {
+				if (p.toString().equals(ps)) {
+					parents.add(p);
+				}
+			}
+			for (String ps : purpSet2) {
+				if (p.toString().equals(ps)) {
+					children.add(p);
+				}
+			}
+		}
+		Purpose purpose = new Purpose(name, variables);
+		puSet.add(purpose);
+		// also update the purpose hierarchy
+		purpHier.addPurpose(purpose, parents, children);
+	}
+
 	/**
 	 * Method that adds an attestation to the architecture's Set.
 	 * @param comp
@@ -1274,6 +1304,21 @@ public class ArchitectureFunctions implements Serializable {
 			pSet.remove(property);
 		}
 	}
+	
+	public void removePurp(String purpose) {
+		Purpose purp = null;
+		// go through the Sets and identify the right object
+		for (Purpose p : puSet) {
+			if (purpose != null && p.toString().equals(purpose)) {
+				purp = p;
+			}
+		}
+
+		if (purp != null) {
+			// remove the action
+			puSet.remove(purp);
+		}
+	}
 
 
 	/**
@@ -1384,5 +1429,13 @@ public class ArchitectureFunctions implements Serializable {
 
 	public void setPurpHier(PurposeHierarchy purpHier) {
 		this.purpHier = purpHier;
+	}
+
+	public Set<Purpose> getpuSet() {
+		return puSet;
+	}
+	
+	public void setpuSet(Set<Purpose> puSet) {
+		this.puSet = puSet;
 	}
 }
