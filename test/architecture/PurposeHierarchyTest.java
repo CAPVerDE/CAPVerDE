@@ -39,7 +39,7 @@ public class PurposeHierarchyTest extends TestCase {
 		boolean [][] am = {{false, true}, {false, false}};
 		MyPurposeHierarchy = new PurposeHierarchy(List.of(p1, p2), am);
 		assertEquals( "The purpose hierarchy have links from top to p1 to p2 to bot.",
-				true, MyPurposeHierarchy.getAM()[2][0] && MyPurposeHierarchy.getAM()[0][1] && MyPurposeHierarchy.getAM()[1][3] );
+				true, MyPurposeHierarchy.getAM()[0][2] && MyPurposeHierarchy.getAM()[2][3] && MyPurposeHierarchy.getAM()[3][1] );
 	}
 	
 	@Test public void testAddSinglePurpose() throws Exception {

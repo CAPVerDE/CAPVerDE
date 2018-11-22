@@ -1,12 +1,18 @@
 package architecture;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PurposeHierarchy {
+public class PurposeHierarchy implements Serializable {
+
+	/**
+	 * @serial Serial ID for storing architecture objects in files.
+	 */
+	private static final long serialVersionUID = -4167533256291006038L;
 
 	private static final int SIZE = 10; //TODO for test purposes
 
@@ -15,7 +21,7 @@ public class PurposeHierarchy {
 	private boolean [][] adjacencyMatrix;
 	private Purpose top;
 	private Purpose bot;
-	
+
 	/**
 	 * Full constructor with a list of purposes and a valid adjacency matrix.
 	 * @param purposes
@@ -27,13 +33,13 @@ public class PurposeHierarchy {
 		this.purposes = new ArrayList<Purpose>(purposes);
 		this.adjacencyMatrix = new boolean [SIZE][SIZE];
 		//TODO test this!
-		copy2DArray(adjacencyMatrix, this.adjacencyMatrix, SIZE);
+		copy2DArray(adjacencyMatrix, this.adjacencyMatrix, 2);
 		// assume top and bot do not exist
 		top = new Purpose("Top", new LinkedHashSet<Variable>()); //TODO set that includes all vars
 		bot = new Purpose("Bot", Collections.emptySet());
 		// add top and bot
-		this.purposes.add(top);
-		this.purposes.add(bot);
+		this.purposes.add(0, top);
+		this.purposes.add(1, bot);
 		// include the top and bot into the am
 		updateTopBot(adjacencyMatrix);
 	}
@@ -63,21 +69,26 @@ public class PurposeHierarchy {
 			}
 			if (!children) {
 				// no children -> set bot as child
-				adjacencyMatrix[i][adjacencyMatrix2.length + 1] = true;
+				adjacencyMatrix[i + 2][1] = true;
 			}
 			if (!parent) {
 				// no parent -> set as child of top
-				adjacencyMatrix[adjacencyMatrix2.length][i] = true;
+				adjacencyMatrix[0][i + 2] = true;
 			}
 		}
 		System.out.println("Debug");
 	}
 
-	private void copy2DArray(boolean[][] src, boolean[][] dest, int size) {
+	private void copy2DArray(boolean[][] src, boolean[][] dest, int offset) {
 		// TODO test
+		if (src.length + offset > dest.length) {
+			// error
+			System.out.println("Destination is not big enough for the source and offset!");
+			return;
+		}
 		for (int i=0; i<src.length; i++) {
 			for (int j=0; j<src[i].length; j++) {
-				dest[i][j] = src[i][j];
+				dest[i+offset][j+offset] = src[i][j];
 			}
 		}
 	}
@@ -200,11 +211,11 @@ public class PurposeHierarchy {
 	public boolean [][] getAM() {
 		return adjacencyMatrix;
 	}
-	
+
 	public Purpose getTop() {
 		return top;
 	}
-	
+
 	public Purpose getBot() {
 		return bot;
 	}

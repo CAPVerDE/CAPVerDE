@@ -1,5 +1,6 @@
 package architecture;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
 
@@ -7,8 +8,13 @@ import java.util.Set;
  * Purpose Role objects.
  * A purpose is connected to a purpose hierarchy and a Labeling that connects Purposes and Variables.
  */
-public class Purpose {
+public class Purpose implements Serializable {
 	
+	/**
+	 * @serial Serial ID for storing architecture objects in files.
+	 */
+	private static final long serialVersionUID = 315927604049228073L;
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

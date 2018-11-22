@@ -263,9 +263,14 @@ public class ArchitectureFunctions implements Serializable {
 	 * @param name
 	 *          the name of the file / architecture
 	 */
-	public void save2file(String name) {
+	public boolean save2file(String name) {
 		// TODO test this
-		SaveLoadArch.saveArch(this, name);
+		try {
+			SaveLoadArch.saveArch(this, name);
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -610,7 +615,7 @@ public class ArchitectureFunctions implements Serializable {
 				break;
 			}
 		}
-		if (component1 != null && component2 != null && !(purpose != null
+		if (component1 != null && component2 != null && !(purpose == null
 				|| variableSet.isEmpty())) {
 			aSet.add(
 					new Action(ActionType.PRECEIVE, component1, component2, purpose, variableSet));
