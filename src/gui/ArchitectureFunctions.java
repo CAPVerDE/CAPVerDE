@@ -1109,6 +1109,26 @@ public class ArchitectureFunctions implements Serializable {
 		System.out.println(pSet);
 	}
 
+	/**
+	 * Method that adds a purpose limitation related property to the architecture's set.
+	 * @param comp
+	 * 				the component
+	 */
+	public void addPropPurp(String comp) {
+		// TODO test
+		Component component = null;
+		for (Component c : cSet) {
+			if (c.toString().equals(comp)) {
+				component = c;
+			}
+		}
+		if (component != null) {
+			pSet.add(new Property(Property.PropertyType.NOTPURP, component));
+		}
+		// Debug
+		System.out.println(pSet);
+	}
+
 	// remover methods
 	/**
 	 * Method that removes an event from the architecture's Set.

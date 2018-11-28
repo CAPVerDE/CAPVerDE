@@ -80,9 +80,9 @@ public class Gui {
 
 	/**
 	 * Flag to indicate the OS.
-	 * As SWT displays dropdowns differently than windows, 
+	 * As SWT displays dropdowns differently on Mac and Windows, 
 	 * this flag has to be set for the GUI to work on os X.
-	 * If this flag is set for windows, the GUI still works but very inefficient.
+	 * If this flag is set for windows, the GUI still works but very inefficiently.
 	 */
 	public final static boolean isMac = false;
 
@@ -114,7 +114,7 @@ public class Gui {
 	 * displays the GUI and also contains the program loop.
 	 */
 	public Gui() {
-		shell.setText("CAPVerDE: Computer-Aided Privacy Verification and Design Engineering Tool");
+		shell.setText("CAPVerDE v1.15: Computer-Aided Privacy Verification and Design Engineering Tool");
 		shell.setLayout(new FillLayout());
 		// shell.setLayout(new GridLayout(2, true));
 
@@ -167,6 +167,9 @@ public class Gui {
 		load.setText("Load Example Architectures");
 
 		Combo examples = new Combo(load, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			//examples = new Combo(load, SWT.SIMPLE | SWT.READ_ONLY);
+		}
 		examples.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		examples.setText("Example Case Studies");
 		examples.add(CaseStudy.SEM.toString());
@@ -357,7 +360,12 @@ public class Gui {
 		Button tertiary = new Button(opType, SWT.RADIO);
 		tertiary.setText("tertiary");
 
-		Combo operator = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo operator; // = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			operator = new Combo(subterms, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			operator = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		operator.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		operator.setText("Operator");
 		operator.add("FUNC");
@@ -388,7 +396,12 @@ public class Gui {
 		});*/
 		funcName.addMouseListener(mouseListener);
 
-		Combo term1 = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo term1;// = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			term1 = new Combo(subterms, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			term1 = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		term1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 2));
 		term1.setText("first Term");
 		term1.setToolTipText("first Term");
@@ -398,7 +411,12 @@ public class Gui {
 			varAdd.addListener(SWT.Selection, event -> updateTerms(term1));
 		}
 
-		Combo term2 = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo term2;// = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			term2 = new Combo(subterms, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			term2 = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		term2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 2));
 		term2.setText("second Term");
 		term2.setEnabled(false);
@@ -411,7 +429,12 @@ public class Gui {
 		binary.addListener(SWT.Selection, event -> term2.setEnabled(true));
 		tertiary.addListener(SWT.Selection, event -> term2.setEnabled(true));
 
-		Combo term3 = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo term3;// = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			term3 = new Combo(subterms, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			term3 = new Combo(subterms, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		term3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		term3.setText("third Term");
 		term3.setEnabled(false);
@@ -457,7 +480,12 @@ public class Gui {
 		eqName.setToolTipText("The name of the equation");
 		eqName.addMouseListener(mouseListener);
 
-		Combo eq1 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo eq1;// = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			eq1 = new Combo(equations, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			eq1 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		eq1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		eq1.setText("first Equation");
 		eq1.setEnabled(false);
@@ -470,7 +498,12 @@ public class Gui {
 		Label and = new Label(equations, SWT.CENTER);
 		and.setText("and");
 
-		Combo eq2 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo eq2;// = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			eq2 = new Combo(equations, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			eq2 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		eq2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		eq2.setText("second Equation");
 		eq2.setEnabled(false);
@@ -483,7 +516,12 @@ public class Gui {
 		Label comma = new Label(equations, SWT.CENTER);
 		comma.setText(",");
 
-		Combo t1 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo t1;// = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			t1 = new Combo(equations, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			t1 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		t1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		t1.setText("first Term");
 		if (!isMac) {
@@ -498,7 +536,12 @@ public class Gui {
 		Label equals = new Label(equations, SWT.CENTER);
 		equals.setText("=");
 
-		Combo t2 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo t2;// = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			t2 = new Combo(equations, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			t2 = new Combo(equations, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		t2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		t2.setText("second Term");
 		if (!isMac) {
@@ -525,7 +568,12 @@ public class Gui {
 		trusts.setLayout(new GridLayout(4, false));
 		trusts.setText("Trust Relations");
 
-		Combo c1 = new Combo(trusts, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo c1;// = new Combo(trusts, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			c1 = new Combo(trusts, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			c1 = new Combo(trusts, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		c1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		c1.setText("Component1");
 		if (!isMac) {
@@ -537,7 +585,12 @@ public class Gui {
 		Label trust = new Label(trusts, SWT.CENTER);
 		trust.setText("blindly trusts");
 
-		Combo c2 = new Combo(trusts, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo c2;// = new Combo(trusts, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			c2 = new Combo(trusts, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			c2 = new Combo(trusts, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		c2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		c2.setText("Component2");
 		if (!isMac) {
@@ -567,7 +620,12 @@ public class Gui {
 		Button pro = new Button(stType, SWT.RADIO);
 		pro.setText("proof");
 
-		Combo c3 = new Combo(statements, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo c3;// = new Combo(statements, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			c3 = new Combo(statements, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			c3 = new Combo(statements, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		c3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		c3.setText("Component");
 		if (!isMac) {
@@ -667,7 +725,12 @@ public class Gui {
 		has.setLayout(new GridLayout(4, false));
 		has.setText("Has");
 
-		Combo comp = new Combo(has, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp;// = new Combo(has, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp = new Combo(has, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp = new Combo(has, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp.setText("Component");
 		if (!isMac) {
@@ -679,7 +742,12 @@ public class Gui {
 		Label hasLab = new Label(has, SWT.CENTER);
 		hasLab.setText("has");
 
-		Combo var = new Combo(has, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo var;// = new Combo(has, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			var = new Combo(has, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			var = new Combo(has, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		var.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		var.setText("Variable");
 		if (!isMac) {
@@ -699,7 +767,12 @@ public class Gui {
 		compute.setLayout(new GridLayout(4, false));
 		compute.setText("Compute");
 
-		Combo comp1 = new Combo(compute, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp1;// = new Combo(compute, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp1 = new Combo(compute, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp1 = new Combo(compute, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp1.setText("Component");
 		if (!isMac) {
@@ -711,7 +784,12 @@ public class Gui {
 		Label computeLab = new Label(compute, SWT.CENTER);
 		computeLab.setText("computes");
 
-		Combo eq = new Combo(compute, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo eq;// = new Combo(compute, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			eq = new Combo(compute, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			eq = new Combo(compute, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		eq.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		eq.setText("new Equation");
 		if (!isMac) {
@@ -732,7 +810,12 @@ public class Gui {
 		receive.setLayout(new GridLayout(75, false));
 		receive.setText("Receive");
 
-		Combo comp2 = new Combo(receive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp2;// = new Combo(receive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp2 = new Combo(receive, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp2 = new Combo(receive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp2.setText("Component");
 		if (!isMac) {
@@ -760,7 +843,12 @@ public class Gui {
 		Label fromLab = new Label(receive, SWT.CENTER);
 		fromLab.setText("from");
 
-		Combo comp3 = new Combo(receive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp3;// = new Combo(receive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp3 = new Combo(receive, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp3 = new Combo(receive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp3.setText("Component");
 		if (!isMac) {
@@ -780,7 +868,12 @@ public class Gui {
 		preceive.setLayout(new GridLayout(75, false));
 		preceive.setText("PReceive");
 
-		Combo comp11 = new Combo(preceive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp11;// = new Combo(preceive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp11 = new Combo(preceive, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp11 = new Combo(preceive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp11.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp11.setText("Component");
 		if (!isMac) {
@@ -792,7 +885,12 @@ public class Gui {
 		Label preceiveLab = new Label(preceive, SWT.CENTER);
 		preceiveLab.setText("receives");
 
-		Combo purp1 = new Combo(preceive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo purp1;// = new Combo(preceive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			purp1 = new Combo(preceive, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			purp1 = new Combo(preceive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		purp1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		purp1.setText("Purpose");
 		if (!isMac) {
@@ -812,7 +910,12 @@ public class Gui {
 		Label fromLab1 = new Label(preceive, SWT.CENTER);
 		fromLab1.setText("from");
 
-		Combo comp12 = new Combo(preceive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp12;// = new Combo(preceive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp12 = new Combo(preceive, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp12 = new Combo(preceive, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp12.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp12.setText("Component");
 		if (!isMac) {
@@ -832,7 +935,12 @@ public class Gui {
 		check.setLayout(new GridLayout(150, false));
 		check.setText("Check");
 
-		Combo comp4 = new Combo(check, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp4;// = new Combo(check, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp4 = new Combo(check, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp4 = new Combo(check, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp4.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp4.setText("Component");
 		if (!isMac) {
@@ -870,7 +978,12 @@ public class Gui {
 		proof.setText("proof");
 		proof.setSelection(true);
 
-		Combo comp10 = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp10;// = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp10 = new Combo(verify, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp10 = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp10.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp10.setText("Component");
 		if (!isMac) {
@@ -882,7 +995,12 @@ public class Gui {
 		Label verifLab = new Label(verify, SWT.CENTER);
 		verifLab.setText("verifies");
 
-		Combo proofs = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo proofs;// = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			proofs = new Combo(verify, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			proofs = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		proofs.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		proofs.setText("Proofs");
 		if (!isMac) {
@@ -896,7 +1014,12 @@ public class Gui {
 		Label orLabel2 = new Label(verify, SWT.CENTER);
 		orLabel2.setText("or");
 
-		Combo attests = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo attests;// = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			attests = new Combo(verify, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			attests = new Combo(verify, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		attests.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		attests.setText("Attestations");
 		if (!isMac) {
@@ -919,7 +1042,12 @@ public class Gui {
 		delete.setLayout(new GridLayout(75, false));
 		delete.setText("Delete");
 
-		Combo comp7 = new Combo(delete, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp7;// = new Combo(delete, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp7 = new Combo(delete, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp7 = new Combo(delete, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp7.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp7.setText("Component");
 		if (!isMac) {
@@ -931,7 +1059,12 @@ public class Gui {
 		Label deleteLab = new Label(delete, SWT.CENTER);
 		deleteLab.setText("deletes");
 
-		Combo var1 = new Combo(delete, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo var1;// = new Combo(delete, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			var1 = new Combo(delete, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			var1 = new Combo(delete, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		var1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		var1.setText("Variable");
 		if (!isMac) {
@@ -951,7 +1084,12 @@ public class Gui {
 		deps.setLayout(new GridLayout(86, false));
 		deps.setText("Dependence Relations");
 
-		Combo comp9 = new Combo(deps, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp9;// = new Combo(deps, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp9 = new Combo(deps, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp9 = new Combo(deps, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp9.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp9.setText("Component");
 		if (!isMac) {
@@ -963,7 +1101,12 @@ public class Gui {
 		Label canLab = new Label(deps, SWT.CENTER);
 		canLab.setText("has the computational power to arrive");
 
-		Combo var3 = new Combo(deps, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo var3;// = new Combo(deps, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			var3 = new Combo(deps, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			var3 = new Combo(deps, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		var3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		var3.setText("Variable");
 		if (!isMac) {
@@ -1014,7 +1157,12 @@ public class Gui {
 		Label dedLabel = new Label(mydeds, SWT.CENTER);
 		dedLabel.setText("can be used to deduce this equation:");
 
-		Combo conclusion = new Combo(mydeds, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo conclusion;// = new Combo(mydeds, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			conclusion = new Combo(mydeds, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			conclusion = new Combo(mydeds, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		conclusion.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		conclusion.setText("Conclusion Equation");
 		if (!isMac) {
@@ -1043,7 +1191,12 @@ public class Gui {
 		deds.setLayout(new GridLayout(64, false));
 		deds.setText("Deductions");
 
-		Combo comp8 = new Combo(deds, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo comp8;// = new Combo(deds, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			comp8 = new Combo(deds, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			comp8 = new Combo(deds, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		comp8.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		comp8.setText("Component");
 		if (!isMac) {
@@ -1279,7 +1432,12 @@ public class Gui {
 		hasProp.setLayout(new GridLayout(7, false));
 		hasProp.setText("Has");
 
-		Combo compProp = new Combo(hasProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo compProp;// = new Combo(hasProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			compProp = new Combo(hasProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			compProp = new Combo(hasProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		compProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		compProp.setText("Component");
 		if (!isMac) {
@@ -1297,7 +1455,12 @@ public class Gui {
 		prob3.setToolTipText("The minimal probability of the has property");
 		prob3.addMouseListener(mouseListener);
 
-		Combo varProp = new Combo(hasProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo varProp;// = new Combo(hasProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			varProp = new Combo(hasProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			varProp = new Combo(hasProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		varProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		varProp.setText("Variable");
 		if (!isMac) {
@@ -1318,7 +1481,12 @@ public class Gui {
 		knowsProp.setLayout(new GridLayout(7, false));
 		knowsProp.setText("Knows");
 
-		Combo compProp1 = new Combo(knowsProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo compProp1;// = new Combo(knowsProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			compProp1 = new Combo(knowsProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			compProp1 = new Combo(knowsProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		compProp1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		compProp1.setText("Component");
 		if (!isMac) {
@@ -1336,7 +1504,12 @@ public class Gui {
 		prob4.setToolTipText("The minimal probability of the knows property");
 		prob4.addMouseListener(mouseListener);
 
-		Combo eqProp = new Combo(knowsProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo eqProp;// = new Combo(knowsProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			eqProp = new Combo(knowsProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			eqProp = new Combo(knowsProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		eqProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		eqProp.setText("Equation");
 		if (!isMac) {
@@ -1357,7 +1530,12 @@ public class Gui {
 		notsharedProp.setLayout(new GridLayout(5, false));
 		notsharedProp.setText("NotShared");
 
-		Combo compProp3 = new Combo(notsharedProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo compProp3;// = new Combo(notsharedProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			compProp3 = new Combo(notsharedProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			compProp3 = new Combo(notsharedProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		compProp3.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		compProp3.setText("Component");
 		if (!isMac) {
@@ -1369,7 +1547,12 @@ public class Gui {
 		Label notSharedLabProp = new Label(notsharedProp, SWT.CENTER);
 		notSharedLabProp.setText("does not share");
 
-		Combo varProp1 = new Combo(notsharedProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo varProp1;// = new Combo(notsharedProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			varProp1 = new Combo(notsharedProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			varProp1 = new Combo(notsharedProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		varProp1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		varProp1.setText("Variable");
 		if (!isMac) {
@@ -1393,7 +1576,12 @@ public class Gui {
 		notstoredProp.setLayout(new GridLayout(6, false));
 		notstoredProp.setText("NotStored");
 
-		Combo compProp4 = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo compProp4;// = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			compProp4 = new Combo(notstoredProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			compProp4 = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		compProp4.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		compProp4.setText("Component");
 		if (!isMac) {
@@ -1405,7 +1593,12 @@ public class Gui {
 		Label notStoredLabProp = new Label(notstoredProp, SWT.CENTER);
 		notStoredLabProp.setText("does not store");
 
-		Combo varProp2 = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo varProp2;// = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			varProp2 = new Combo(notstoredProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			varProp2 = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		varProp2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		varProp2.setText("Variable");
 		if (!isMac) {
@@ -1417,7 +1610,12 @@ public class Gui {
 		Label notStoredLabProp2 = new Label(notstoredProp, SWT.CENTER);
 		notStoredLabProp2.setText("with bound");
 
-		Combo boundProp = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo boundProp;// = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			boundProp = new Combo(notstoredProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			boundProp = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		boundProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
 		boundProp.setText("Bound");
 		for (int i=1; i<10; i++) {
@@ -1430,7 +1628,34 @@ public class Gui {
 		notStoredPropAdd.addListener(SWT.Selection,
 				event -> archFunc.addPropNotStored(compProp4.getText(), varProp2.getText(), boundProp.getText()));
 
-		//TODO new properties!
+		// not Purp property
+		Group purpProp = new Group(properties, SWT.SHADOW_IN);
+		purpProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		purpProp.setLayout(new GridLayout(84, false));
+		purpProp.setText("Purpose Limitation");
+		
+		Combo compProp10;// = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			compProp10 = new Combo(purpProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			compProp10 = new Combo(purpProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
+		compProp10.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
+		compProp10.setText("Component");
+		if (!isMac) {
+			compProp10.addListener(SWT.DROP_DOWN, event -> updateComponents(compProp10));
+		} else {
+			compAdd.addListener(SWT.Selection, event -> updateComponents(compProp10));
+		}
+
+		Label notPurpLabProp = new Label(purpProp, SWT.CENTER);
+		notPurpLabProp.setText("does not fulfil purpose limitation");
+
+		Button purpPropAdd = new Button(purpProp, SWT.PUSH);
+		purpPropAdd.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
+		purpPropAdd.setText("Add");
+		purpPropAdd.addListener(
+				SWT.Selection, event -> archFunc.addPropPurp(compProp10.getText()));
 
 		// line negation
 		Group negProp = new Group(properties, SWT.SHADOW_IN);
@@ -1441,7 +1666,12 @@ public class Gui {
 		Label notLabProp = new Label(negProp, SWT.CENTER);
 		notLabProp.setText("NOT");
 
-		Combo propProp = new Combo(negProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo propProp;// = new Combo(negProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			propProp = new Combo(negProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			propProp = new Combo(negProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		propProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		propProp.setText("Property");
 		if (!isMac) {
@@ -1460,7 +1690,12 @@ public class Gui {
 		conjProp.setLayout(new GridLayout(84, false));
 		conjProp.setText("Composition");
 
-		Combo propProp1 = new Combo(conjProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo propProp1;// = new Combo(conjProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			propProp1 = new Combo(conjProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			propProp1 = new Combo(conjProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		propProp1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		propProp1.setText("Property1");
 		if (!isMac) {
@@ -1470,7 +1705,12 @@ public class Gui {
 		Label andLabProp = new Label(conjProp, SWT.CENTER);
 		andLabProp.setText("AND");
 
-		Combo propProp2 = new Combo(conjProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		Combo propProp2;// = new Combo(conjProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		if (isMac) {
+			propProp2 = new Combo(conjProp, SWT.SIMPLE | SWT.READ_ONLY);
+		} else {
+			propProp2 = new Combo(conjProp, SWT.DROP_DOWN | SWT.READ_ONLY);
+		}
 		propProp2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		propProp2.setText("Property2");
 		if (!isMac) {
@@ -1490,18 +1730,21 @@ public class Gui {
 			notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
 			notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
 			negPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
+			purpPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
 			conjPropAdd.addListener(SWT.Selection, event -> updateProps(propProp));
 			hasPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
 			knowsPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
 			notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
 			notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
 			negPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
+			purpPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
 			conjPropAdd.addListener(SWT.Selection, event -> updateProps(propProp1));
 			hasPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
 			knowsPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
 			notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
 			notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
 			negPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
+			purpPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
 			conjPropAdd.addListener(SWT.Selection, event -> updateProps(propProp2));
 		}
 
@@ -1511,7 +1754,12 @@ public class Gui {
 		verification.setLayout(new GridLayout(122, false));
 		verification.setText("Verification");
 
-		Combo prop = new Combo(verification, SWT.DROP_DOWN | SWT.H_SCROLL | SWT.READ_ONLY);
+		Combo prop;// = new Combo(verification, SWT.DROP_DOWN | SWT.H_SCROLL | SWT.READ_ONLY);
+		if (isMac) {
+			prop = new Combo(verification, SWT.SIMPLE | SWT.H_SCROLL | SWT.READ_ONLY);
+		} else {
+			prop = new Combo(verification, SWT.DROP_DOWN | SWT.H_SCROLL | SWT.READ_ONLY);
+		}
 		prop.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		prop.setText("Property");
 		if (!isMac) {
@@ -1522,6 +1770,7 @@ public class Gui {
 			notSharedPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
 			notStoredPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
 			negPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
+			purpPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
 			conjPropAdd.addListener(SWT.Selection, event -> updateProps(prop));
 		}
 
@@ -1562,6 +1811,7 @@ public class Gui {
 		notStoredPropAdd.addListener(SWT.Selection, event -> updatePropsTab(propTable));
 		conjPropAdd.addListener(SWT.Selection, event -> updatePropsTab(propTable));
 		negPropAdd.addListener(SWT.Selection, event -> updatePropsTab(propTable));
+		purpPropAdd.addListener(SWT.Selection, event -> updatePropsTab(propTable));
 
 		Button propRemove = new Button(props, SWT.PUSH);
 		propRemove.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
@@ -1815,6 +2065,9 @@ public class Gui {
 			resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp4));
 			loadButton.addListener(SWT.Selection, event -> updateComponents(compProp4));
 			loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp4));
+			resetBtn.addListener(SWT.Selection, event -> updateComponents(compProp10));
+			loadButton.addListener(SWT.Selection, event -> updateComponents(compProp10));
+			loadButton2.addListener(SWT.Selection, event -> updateComponents(compProp10));
 			resetBtn.addListener(SWT.Selection, event -> updateVariables(varProp));
 			loadButton.addListener(SWT.Selection, event -> updateVariables(varProp));
 			loadButton2.addListener(SWT.Selection, event -> updateVariables(varProp));
@@ -2030,17 +2283,23 @@ public class Gui {
 		// alternative layout
 		FlowLayout flowLayout = new FlowLayout();
 		flowLayout.setHorizontal(true);
-		flowLayout.setMinorAlignment(FlowLayout.ALIGN_LEFTTOP);
+		//flowLayout.setMinorAlignment(FlowLayout.ALIGN_LEFTTOP);
+		flowLayout.setMinorSpacing(1000); //TODO test
+		flowLayout.setMajorSpacing(1000); //TODO test
 		flowLayout.setMajorAlignment(FlowLayout.ALIGN_LEFTTOP);
+		org.eclipse.draw2d.GridLayout gridLayout = new org.eclipse.draw2d.GridLayout(3, false);
+		gridLayout.horizontalSpacing = 460;
+		gridLayout.verticalSpacing = 120;
+		contents.setLayoutManager(gridLayout);
 		// get bounds
 		org.eclipse.swt.graphics.Rectangle shellBounds = display.getBounds();
 		Monitor primary = display.getPrimaryMonitor();
 		flowLayout.setMajorSpacing(primary.getBounds().height / 4);
 		flowLayout.setMinorSpacing(primary.getBounds().width / 6);
 		if (arch2draw.getCompList().size() > 4) { 
-			contents.setLayoutManager(flowLayout);
+			//contents.setLayoutManager(flowLayout); //TODO test
 		} else {
-			contents.setLayoutManager(contentsLayout);
+			//contents.setLayoutManager(contentsLayout); //TODO test
 		}
 
 		Font classFont = new Font(null, "Arial", 12, SWT.BOLD);
