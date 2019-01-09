@@ -26,7 +26,7 @@ public class Parser implements Serializable {
 	 * @serial Serial ID for storing architecture objects in files.
 	 */
 	private static final long serialVersionUID = -6447238613115075082L;
-	
+
 	// class fields
 	protected Architecture arch;
 
@@ -54,7 +54,7 @@ public class Parser implements Serializable {
 					"Architecture is consistent and can be used for verification of privacy properties");
 			try {
 				Gui.showMessage(MessageType.INF,
-					"Architecture is consistent and can be used for verification of privacy properties");
+						"Architecture is consistent and can be used for verification of privacy properties");
 			} catch (Exception e) {
 				//TODO
 				e.printStackTrace();
@@ -123,9 +123,10 @@ public class Parser implements Serializable {
 	 * @return true, if the order is consistent
 	 */
 	private SuccessIndexPair isConsistent(List<Action> actions) {
-		//TODO PRECEIVE
-		// keep track of the owned variables/DBs for each component
+		//TODO test PRECEIVE, CRECEIVE, Permission, Revoke
+		// keep track of the owned/consented variables for each component
 		boolean[][] variablesOwned = new boolean[arch.getCompList().size()][arch.getVariables().size()];
+		boolean[][] dataTypesConsented = new boolean[arch.getCompList().size()][arch.getDataTypes().size()];
 		// go through list of actions and add owned variables and check used ones
 		for (Action action : actions) {
 			int actionIndex = actions.indexOf(action);
@@ -204,6 +205,58 @@ public class Parser implements Serializable {
 							variablesOwned[arch.getCompList().indexOf(compos.getComponent())][arch.getVariables().indexOf(var)] = true;
 						}
 					}
+				}
+				break;
+			case CRECEIVE:
+				// not fall through as there are additional checks in order
+				// data types
+				if (!dataTypesConsented[arch.getCompList().indexOf(action.getComPartner())][arch.getDataTypes().indexOf(action.getDt())]) {
+					// there is no permission to use the data type
+					return new SuccessIndexPair(false, actionIndex);
+				}
+				for (Variable var : action.getVarSet()) {
+					if (arch.getVariables().indexOf(var) < 0
+							|| !variablesOwned[arch.getCompList().indexOf(
+									action.getComPartner())][arch.getVariables().indexOf(var)]) {
+						// one of the used variables is not yet possessed by the sending component
+						return new SuccessIndexPair(false, actionIndex);
+					}
+					// the variable is now owned
+					variablesOwned[compIndex][arch.getVariables().indexOf(var)] = true;
+					// also own variables from composition
+					for (Composition compos : arch.getCompositions()) {
+						if (compos.getContainer().equals(action.getComponent())) {
+							// the composed component also has access to the variable
+							variablesOwned[arch.getCompList().indexOf(compos.getComponent())][arch.getVariables().indexOf(var)] = true;
+						}
+					}
+					// pass on the permission to use the data type
+					dataTypesConsented[arch.getCompList().indexOf(action.getComponent())][arch.getDataTypes().indexOf(action.getDt())] = true;
+				}
+				break;
+			case PERMISSION:
+				// the data type is now permitted
+				// add the data type to the list of permitted ones
+				dataTypesConsented[compIndex][arch.getDataTypes().indexOf(action.getDt())] = true;
+				// also get permission from composition
+				for (Composition compos : arch.getCompositions()) {
+					if (compos.getContainer().equals(action.getComponent())) {
+						// the composed component also has permission
+						dataTypesConsented[arch.getCompList().indexOf(compos.getComponent())][arch.getDataTypes().indexOf(action.getDt())] = true;
+					}
+				}
+				break;
+			case REVOKE:
+				// the data type's permission is now revoked
+				if (arch.getDataTypes().indexOf(action.getDt()) < 0 || !dataTypesConsented[arch.getCompList().indexOf(
+						action.getComponent())][arch.getDataTypes().indexOf(action.getDt())]) {
+					// there is no permission to use the data type
+					return new SuccessIndexPair(false, actionIndex);
+				}
+				// permission is now revoked for everyone
+				//TODO change to more meaningful version?
+				for (int i=0; i<arch.getCompList().size(); i++) {
+					dataTypesConsented[i][arch.getDataTypes().indexOf(action.getDt())] = false;
 				}
 				break;
 			case TRUST:

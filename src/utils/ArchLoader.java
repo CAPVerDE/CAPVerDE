@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import architecture.Action;
 import architecture.Component;
 import architecture.Composition;
+import architecture.DataType;
 import architecture.Deduction;
 import architecture.DeductionCapability;
 import architecture.Dep;
@@ -633,6 +634,82 @@ public class ArchLoader {
 	//TODO more?
 	private static Set<Property> pSet4 = Stream.of(res_prop1, res_prop2).collect(Collectors.toCollection(LinkedHashSet::new));
 
+	//############## AccuWeather ###############
+	// Components
+	private static Component US = new Component("US");
+	private static Component SP = new Component("SP");
+	private static Component AP = new Component("AP");
+	private static Component SV = new Component("SV");
+	private static Set<Component> cSet5 = Stream.of(US, SP, AP, RM, SV).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Variables
+	private static Variable gps = new Variable("gps");
+	private static Variable long_lat = new Variable("long_lat");
+	private static Variable aloc = new Variable("aloc");
+	private static Variable lbs = new Variable("lbs");
+	private static Set<Variable> vSet5 = Stream.of(location, wifi_info, gps, long_lat, aloc, lbs).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Terms
+	private static Term termGps = new Term(TermType.ATOM, gps, false);
+	private static Term termLong_lat = new Term(TermType.ATOM, long_lat, false);
+	private static Term termAloc = new Term(TermType.ATOM, aloc, false);
+	private static Term termLbs = new Term(TermType.ATOM, lbs, false);
+	private static Term termLocate = new Term(
+			TermType.COMPOSITION, OperatorType.BINARY, Operator.FUNC, "locate", termGps, termWifi_info, false);
+	private static Term termApprox = new Term(
+			TermType.COMPOSITION, OperatorType.UNARY, Operator.FUNC, "approx", termWifi_info, false);
+	private static Term termService = new Term(
+			TermType.COMPOSITION, OperatorType.UNARY, Operator.FUNC, "service", termLong_lat, false);
+	private static Set<Term> tSet5 = Stream.of(
+			termLocation, termWifi_info, termGps, termLong_lat, termAloc, termLbs, termLocate, termApprox, termService).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Equations
+	private static Equation locate = new Equation(
+			"locate", Type.RELATION, Relation.EQUALITY, termLong_lat, termLocate);
+	private static Equation approx = new Equation(
+			"approx", Type.RELATION, Relation.EQUALITY, termAloc, termApprox);
+	private static Equation service = new Equation(
+			"service", Type.RELATION, Relation.EQUALITY, termLbs, termService);
+	private static Set<Equation> eSet5 = Stream.of(locate, approx, service).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Trusts
+	private static Set<Trust> trustSet5 = new LinkedHashSet<Trust>();
+	// Statements
+	private static Set<architecture.Statement> stSet5 = new LinkedHashSet<architecture.Statement>();
+	// Data Types
+	private static DataType dt = new DataType("location", Set.of(gps, wifi_info, long_lat, aloc));
+	private static Set<DataType> dtSet = Stream.of(dt).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Actions
+	private static Action permission = new Action(ActionType.PERMISSION, SP, US, dt);
+	private static Action revoke = new Action(ActionType.REVOKE, SP, US, dt);
+	private static Action hasSP_gps = new Action(ActionType.HAS, SP, gps);
+	private static Action hasSP_wifi_info = new Action(ActionType.HAS, SP, wifi_info);
+	private static Action computeSP_long_lat = new Action(
+			ActionType.COMPUTE, SP, locate);
+	private static Action computeSV_lbs = new Action(
+			ActionType.COMPUTE, SV, service);
+	private static Action computeRM_aloc = new Action(
+			ActionType.COMPUTE, RM, approx);
+	private static Action receiveAPSP = new Action(
+			ActionType.RECEIVE, AP, SP, Collections.emptySet(), Set.of(wifi_info));
+	private static Action receiveRMAP = new Action(
+			ActionType.RECEIVE, RM, AP, Collections.emptySet(), Set.of(wifi_info));
+	private static Action creceiveAPSP = new Action(
+			ActionType.CRECEIVE, AP, SP, dt, Set.of(long_lat));
+	private static Action creceiveSVAP = new Action(
+			ActionType.CRECEIVE, SV, AP, dt, Set.of(long_lat));
+	private static Action creceiveRMAP = new Action(
+			ActionType.CRECEIVE, RM, AP, dt, Set.of(long_lat));
+	private static Set<Action> aSet5 = Stream.of(
+			permission, revoke, hasSP_gps, hasSP_wifi_info, computeSP_long_lat, computeSV_lbs, computeRM_aloc, receiveAPSP, receiveRMAP, creceiveAPSP, creceiveSVAP, creceiveRMAP).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Dependencies
+	private static Set<DependenceRelation> dSet5 = new LinkedHashSet<DependenceRelation>();
+	// Deductions
+	private static DeductionCapability dc_US = new DeductionCapability(US, Set.of(deduc4));
+	private static DeductionCapability dc_SP = new DeductionCapability(SP, Set.of(deduc4));
+	private static DeductionCapability dc_AP = new DeductionCapability(AP, Set.of(deduc4));
+	private static DeductionCapability dc_SV = new DeductionCapability(SV, Set.of(deduc4));
+	private static Set<DeductionCapability> dedSet5 = Stream.of(dc_US, dc_SP, dc_RM, dc_AP, dc_SV).collect(Collectors.toCollection(LinkedHashSet::new));
+	// Statements
+	private static Property property_consent = new Property(PropertyType.CONSENTVIOLATED, SP, dt);
+	//TODO 1 more?
+	private static Set<Property> pSet5 = Stream.of(property_consent).collect(Collectors.toCollection(LinkedHashSet::new));
 
 
 	/**
@@ -702,6 +779,20 @@ public class ArchLoader {
 			archFunc.setpSet(pSet4);
 			archFunc.setpuSet(puSet4);
 			archFunc.setPurpHier(purpHier);
+			break;
+		case DPIA:
+			// fifth case study: AccuWeather Data Protection Impact Assessment
+			archFunc.setcSet(cSet5);
+			archFunc.setvSet(vSet5);
+			archFunc.settSet(tSet5);
+			archFunc.seteSet(eSet5);
+			archFunc.settrustSet(trustSet5);
+			archFunc.setstSet(stSet5);
+			archFunc.setaSet(aSet5);
+			archFunc.setdSet(dSet5);
+			archFunc.setdedSet(dedSet5);
+			archFunc.setpSet(pSet5);
+			archFunc.setdtSet(dtSet);
 			break;
 		default:
 			break;

@@ -28,6 +28,7 @@ public class Architecture implements Serializable {
 	private List<Trust> trusts;
 	private List<Property> allProperties;
 	private List<Variable> allVariables;
+	private List<DataType> allDataTypes;
 	private List<Equation> allEquations;
 	private List<Statement> allStatements;
 	private List<Composition> compositions;
@@ -62,6 +63,7 @@ public class Architecture implements Serializable {
 		}
 		allProperties = new ArrayList<Property>();
 		allVariables = new ArrayList<Variable>();
+		allDataTypes = new ArrayList<DataType>();
 		allEquations = new ArrayList<Equation>();
 		allStatements = new ArrayList<Statement>();
 		// Collect a list of all actions in the architecture
@@ -69,6 +71,7 @@ public class Architecture implements Serializable {
 		collectActions();
 		// Collect lists of all variables and equations in the architecture
 		collectVariables();
+		collectDataTypes();
 		collectSimpleEquations();
 		// also update the counter for inter-component-actions
 		makeCounter();
@@ -115,7 +118,7 @@ public class Architecture implements Serializable {
 						default:
 							break;
 						}
-					} else if ((a.getAction() == ActionType.RECEIVE || a.getAction() == ActionType.PRECEIVE) && a.getComPartner().equals(comp)) {
+					} else if ((a.getAction() == ActionType.RECEIVE || a.getAction() == ActionType.PRECEIVE || a.getAction() == ActionType.CRECEIVE) && a.getComPartner().equals(comp)) {
 						// also consider the receives
 						if (a.getVarSet().contains(var)) {
 							count++;
@@ -255,6 +258,19 @@ public class Architecture implements Serializable {
 	}
 
 	/**
+	 * Helper method to collect all data types in the architecture.
+	 */
+	private void collectDataTypes() {
+		// go through all actions
+		for (Action a : allActions) {
+			if (a.getAction() == ActionType.CRECEIVE || a.getAction() == ActionType.PERMISSION || a.getAction() == ActionType.REVOKE) {
+				// add all data types
+				addDataType(a.getDt());
+			}
+		}
+	}
+
+	/**
 	 * Helper method to pass the compositions information to the involved components
 	 */
 	private void updateCompositions() {
@@ -301,6 +317,43 @@ public class Architecture implements Serializable {
 		if (!allVariables.contains(var)) {
 			allVariables.add(var);
 		}
+	}
+
+	/**
+	 * Method that adds a data type to the list if not already contained.
+	 * 
+	 * @param dt
+	 *          the data type to add
+	 */
+	public void addDataType(DataType dt) {
+		// Only add new data types to the list
+		if (!allDataTypes.contains(dt)) {
+			allDataTypes.add(dt);
+		}
+	}
+	
+	/**
+	 * Method that adds an action to the list.
+	 * @param action
+	 * 			the action
+	 */
+	public void addAction(Action action) {
+		switch (action.getAction()) {
+		case RECEIVE:
+			// fall through
+		case SPOTCHECK:
+			// fall through
+		case CRECEIVE:
+			// fall through
+		case PRECEIVE:
+			interCompActions.add(action);
+			break;
+		default:
+			// all other actions
+			action.getComponent().addAction(action);
+			break;
+		}
+		allActions.add(action);
 	}
 
 	// Getter and setter methods
@@ -376,20 +429,7 @@ public class Architecture implements Serializable {
 		return purpHier;
 	}
 	
-	public void addAction(Action action) {
-		switch (action.getAction()) {
-		case RECEIVE:
-			// fall through
-		case SPOTCHECK:
-			// fall through
-		case PRECEIVE:
-			interCompActions.add(action);
-			break;
-		default:
-			// all other actions
-			action.getComponent().addAction(action);
-			break;
-		}
-		allActions.add(action);
+	public List<DataType> getDataTypes() {
+		return allDataTypes;
 	}
 }

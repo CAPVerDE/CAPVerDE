@@ -27,7 +27,7 @@ public class ParserTest extends TestCase {
 		comp1 = new Component("c1");
 		comp2 = new Component("c2");
 		comp3 = new Component("c3");
-		arch = new Architecture(Set.of(comp1, comp2));
+		arch = new Architecture(Set.of(comp1, comp2, comp3));
 		parser = new RulesOfInferenceParserBottomup(arch);
 		assertTrue( "There is nothing to assert", true );
 	}
@@ -210,6 +210,71 @@ public class ParserTest extends TestCase {
 		Property prop = new Property(PropertyType.NOTPURP, comp1);
 		assertTrue( "The property notPurp_comp1 should hold because second purpose is more general than the first one.",
 				parser.verifyStatement(prop, 0) );
-		//TODO test
+	}
+	
+	@Test
+	public void testConsentViolationSimple() {
+		var1 = new Variable("x");
+		var2 = new Variable("y");
+		arch.addVariable(var1);
+		arch.addVariable(var2);
+		DataType dt = new DataType("dt", Set.of(var1, var2));
+		Action a1 = new Action(ActionType.RECEIVE, comp1, comp2, Collections.emptySet(), Collections.singleton(var1));
+		arch.addAction(a1);
+		Property prop = new Property(PropertyType.CONSENTVIOLATED, comp2, dt);
+		assertTrue( "The property consentViolated_comp2(dt) should hold because there is no permission for the data type.",
+				parser.verifyStatement(prop, 0) );
+	}
+	
+	@Test
+	public void testConsentViolationPermission() {
+		var1 = new Variable("x");
+		var2 = new Variable("y");
+		arch.addVariable(var1);
+		arch.addVariable(var2);
+		DataType dt = new DataType("dt", Set.of(var1, var2));
+		Action a1 = new Action(ActionType.RECEIVE, comp1, comp2, Collections.emptySet(), Collections.singleton(var1));
+		Action a2 = new Action(ActionType.PERMISSION, comp3, comp2, dt);
+		arch.addAction(a1);
+		arch.addAction(a2);
+		Property prop = new Property(PropertyType.CONSENTVIOLATED, comp2, dt);
+		assertTrue( "The property consentViolated_comp2(dt) should not hold because there is a permission for the data type.",
+				!parser.verifyStatement(prop, 0) );
+	}
+	
+	@Test
+	public void testConsentViolationRevoke() {
+		var1 = new Variable("x");
+		var2 = new Variable("y");
+		arch.addVariable(var1);
+		arch.addVariable(var2);
+		DataType dt = new DataType("dt", Set.of(var1, var2));
+		Action a1 = new Action(ActionType.RECEIVE, comp1, comp2, Collections.emptySet(), Collections.singleton(var1));
+		Action a2 = new Action(ActionType.REVOKE, comp3, comp2, dt);
+		Action a3 = new Action(ActionType.PERMISSION, comp3, comp2, dt);
+		arch.addAction(a1);
+		arch.addAction(a2);
+		arch.addAction(a3);
+		Property prop = new Property(PropertyType.CONSENTVIOLATED, comp2, dt);
+		assertTrue( "The property consentViolated_comp2(dt) should hold because there is a revoke for the data type.",
+				parser.verifyStatement(prop, 0) );
+	}
+	
+	@Test
+	public void testConsentViolationNoDT() {
+		var1 = new Variable("x");
+		var2 = new Variable("y");
+		arch.addVariable(var1);
+		arch.addVariable(var2);
+		DataType dt = new DataType("dt", Set.of(var2));
+		Action a1 = new Action(ActionType.RECEIVE, comp1, comp2, Collections.emptySet(), Collections.singleton(var1));
+		Action a2 = new Action(ActionType.REVOKE, comp3, comp2, dt);
+		Action a3 = new Action(ActionType.PERMISSION, comp3, comp2, dt);
+		arch.addAction(a1);
+		arch.addAction(a2);
+		arch.addAction(a3);
+		Property prop = new Property(PropertyType.CONSENTVIOLATED, comp2, dt);
+		assertTrue( "The property consentViolated_comp2(dt) should not hold because the variable is not contained in the data type.",
+				!parser.verifyStatement(prop, 0) );
 	}
 }

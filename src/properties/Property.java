@@ -1,6 +1,7 @@
 package properties;
 
 import architecture.Component;
+import architecture.DataType;
 import architecture.Equation;
 import architecture.Variable;
 
@@ -20,7 +21,8 @@ public class Property implements Serializable {
    * Type of property.
    */
   public enum PropertyType {
-    HAS, KNOWS, NOTSHARED, CONJUNCTION, NOTSTORED, SHARED, NEGATION, NOTPURP
+    HAS, KNOWS, NOTSHARED, CONJUNCTION, NOTSTORED, SHARED, NEGATION,
+    NOTPURP, CONSENTVIOLATED
   }
 
   // Class fields
@@ -32,6 +34,7 @@ public class Property implements Serializable {
   private Equation eq;
   private Property st1;
   private Property st2;
+  private DataType dt;
 
   @Override
 public int hashCode() {
@@ -117,9 +120,11 @@ public boolean equals(Object obj) {
    *          the first property of the conjunction or negation
    * @param st2
    *          the second property of the conjunction
+   * @param dt
+   * 		  the data type (set of variables) connected to a consent (CONSENTVIOLATED)
    */
   public Property(PropertyType type, Component owner, Double prob, Integer bound,
-      Variable var, Equation eq, Property st1, Property st2) {
+      Variable var, Equation eq, Property st1, Property st2, DataType dt) {
     // Default Constructor
     this.type = type;
 
@@ -159,6 +164,10 @@ public boolean equals(Object obj) {
           //this.var = var;
           //this.bound = bound;
           break;
+      case CONSENTVIOLATED:
+    	  this.owner = owner;
+    	  this.dt = dt;
+    	  break;
       default:
         // do nothing
     }
@@ -178,7 +187,7 @@ public boolean equals(Object obj) {
    */
   public Property(PropertyType type, Component owner, Double prob, Variable var) {
     // This is called for type=HAS
-    this(type, owner, prob, null, var, null, null, null);
+    this(type, owner, prob, null, var, null, null, null, null);
   }
 
   /**
@@ -195,7 +204,7 @@ public boolean equals(Object obj) {
    */
   public Property(PropertyType type, Component owner, Double prob, Equation eq) {
     // This is called for type=KNOWS/BELIEVES
-    this(type, owner, prob, null, null, eq, null, null);
+    this(type, owner, prob, null, null, eq, null, null, null);
   }
 
   /**
@@ -210,7 +219,7 @@ public boolean equals(Object obj) {
    */
   public Property(PropertyType type, Property st1, Property st2) {
     // This is called for type=CONJUNCTION
-    this(type, null, null, null, null, null, st1, st2);
+    this(type, null, null, null, null, null, st1, st2, null);
   }
   
   /**
@@ -223,7 +232,7 @@ public boolean equals(Object obj) {
    */
   public Property(PropertyType type, Property st1) {
     // This is called for type=NEGATION
-    this(type, null, null, null, null, null, st1, null);
+    this(type, null, null, null, null, null, st1, null, null);
   }
 
   /**
@@ -238,7 +247,7 @@ public boolean equals(Object obj) {
    */
   public Property(PropertyType type, Component owner, Variable var) {
     // This is called for type = NOTSHARED
-    this(type, owner, null, null, var, null, null, null);
+    this(type, owner, null, null, var, null, null, null, null);
   }
   
   /**
@@ -255,7 +264,7 @@ public boolean equals(Object obj) {
    */
   public Property(PropertyType type, Component owner, Variable var, int bound) {
     // This is called for type = NOTSTORED
-    this(type, owner, null, bound, var, null, null, null);
+    this(type, owner, null, bound, var, null, null, null, null);
   }
   
   /**
@@ -265,14 +274,25 @@ public boolean equals(Object obj) {
    *          the type of property
    * @param owner
    *          the component the property is about
-   * @param var1
-   *          the variable involved
-   * @param bound
-   * 		  the timer-bound for the variable (how often can it be used before deletion)
    */
   public Property(PropertyType type, Component owner) {
     // This is called for type = NOTSTORED
-    this(type, owner, null, null, null, null, null, null);
+    this(type, owner, null, null, null, null, null, null, null);
+  }
+  
+  /**
+   * Constructor called for type = consentviolated.
+   * 
+   * @param type
+   *          the type of property
+   * @param owner
+   *          the component the property is about
+   * @param dt
+   * 		  the data type (set of variables) connected to a consent
+   */
+  public Property(PropertyType type, Component owner, DataType dt) {
+    // This is called for type = NOTSTORED
+    this(type, owner, null, null, null, null, null, null, dt);
   }
 
   @Override
@@ -305,6 +325,8 @@ public boolean equals(Object obj) {
         return "notStored_" + arch.owner + "(" + arch.var.getName() + ", " + arch.bound + ")";
       case NOTPURP:
           return "notPurp_" + arch.owner;
+      case CONSENTVIOLATED:
+          return "consentViolated_" + arch.owner + "(" + arch.getDt() + ")";
       default:
         return "";
     }
@@ -373,6 +395,10 @@ public boolean equals(Object obj) {
   
   public void setBound(Integer bound) {
 	  this.bound = bound;
+  }
+  
+  public DataType getDt() {
+	  return dt;
   }
 
 }

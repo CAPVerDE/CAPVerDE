@@ -17,7 +17,8 @@ public class Action implements Serializable {
 	 * All possible actions that a component can perform.
 	 */
 	public enum ActionType {
-		HAS, COMPUTE, RECEIVE, CHECK, VERIF_P, VERIF_A, DELETE, TRUST, SPOTCHECK, PRECEIVE
+		TRUST, PERMISSION, HAS, COMPUTE, RECEIVE, PRECEIVE, CRECEIVE, SPOTCHECK, CHECK, VERIF_P, VERIF_A, DELETE,
+		REVOKE
 	}
 
 	// Class fields
@@ -32,6 +33,7 @@ public class Action implements Serializable {
 	private Proof pro;
 	private Attest att;
 	private Purpose purp;
+	private DataType dt;
 
 	/**
 	 * The full Constructor of an Action that is typically only invoked in this class
@@ -59,10 +61,12 @@ public class Action implements Serializable {
 	 *          an attestation that is transmitted
 	 * @param purp
 	 * 			a purpose
+	 * @param dt
+	 * 		  	a data type
 	 */
 	public Action(ActionType action, Component component, Variable var, Equation eq,
 			Component comPartner, Set<Variable> varSet, Set<Equation> eqSet,
-			Set<Statement> stSet, Proof pro, Attest att, Purpose purp) {
+			Set<Statement> stSet, Proof pro, Attest att, Purpose purp, DataType dt) {
 		this.action = action;
 		this.component = component;
 		this.var = var;
@@ -74,6 +78,7 @@ public class Action implements Serializable {
 		this.pro = pro;
 		this.att = att;
 		this.purp = purp;
+		this.dt = dt;
 	}
 
 	/**
@@ -87,7 +92,7 @@ public class Action implements Serializable {
 	 *          the variable that is possessed / deleted
 	 */
 	public Action(ActionType action, Component component, Variable var) {
-		this(action, component, var, null, null, null, null, null, null, null, null);
+		this(action, component, var, null, null, null, null, null, null, null, null, null);
 	}
 
 	/**
@@ -106,26 +111,61 @@ public class Action implements Serializable {
 	 */
 	public Action(ActionType action, Component component, Component comPartner,
 			Set<Statement> stSet, Set<Variable> varSet) {
-		this(action, component, null, null, comPartner, varSet, null, stSet, null, null, null);
+		this(action, component, null, null, comPartner, varSet, null, stSet, null, null, null, null);
 	}
 	
 	/**
 	 * Constructor called for Action = PRECEIVE.
+	 * This represents a purposeful receive that is connected to a purpose.
 	 * 
 	 * @param action
-	 *          the action to be performed (receive)
+	 *          the action to be performed (purpose receive)
 	 * @param component
 	 *          the receiving component
 	 * @param comPartner
 	 *          the sending component
-	 * @param stSet
-	 *          a list of statements (can be empty)
+	 * @param purp
+	 *          the purpose
 	 * @param varSet
-	 *          a list of variables
+	 *          the set of variables
 	 */
 	public Action(ActionType action, Component component, Component comPartner,
 			Purpose purp, Set<Variable> varSet) {
-		this(action, component, null, null, comPartner, varSet, null, null, null, null, purp);
+		this(action, component, null, null, comPartner, varSet, null, null, null, null, purp, null);
+	}
+	
+	/**
+	 * Constructor called for Action = CRECEIVE.
+	 * This represents a conditional receive that is only executed if the necessary consent exists.
+	 * 
+	 * @param action
+	 *          the action to be performed (conditional receive)
+	 * @param component
+	 *          the receiving component
+	 * @param comPartner
+	 *          the sending component
+	 * @param dt
+	 *          a data type that encompasses the consent
+	 * @param varSet
+	 *          the set of variables
+	 */
+	public Action(ActionType action, Component component, Component comPartner,
+			DataType dt, Set<Variable> varSet) {
+		this(action, component, null, null, comPartner, varSet, null, null, null, null, null, dt);
+	}
+
+	/**
+	 * Constructor called for Action = Permission or Revoke.
+	 * 
+	 * @param action
+	 *          the action to be performed (permission | revoke)
+	 * @param component
+	 *          the component that executes the action
+	 * @param dt
+	 *          the data type (set of variables) that are consented with or revoked
+	 */
+	public Action(ActionType action, Component component, Component comPartner, DataType dt) {
+		this(action, component, null, null, comPartner, null, null, null, null, null, null, dt);
 	}
 
 	/**
@@ -139,7 +179,7 @@ public class Action implements Serializable {
 	 *          the equation that is computed
 	 */
 	public Action(ActionType action, Component component, Equation eq) {
-		this(action, component, null, eq, null, null, null, null, null, null, null);
+		this(action, component, null, eq, null, null, null, null, null, null, null, null);
 	}
 
 	/**
@@ -153,7 +193,7 @@ public class Action implements Serializable {
 	 *          a list of equations to check
 	 */
 	public Action(ActionType action, Component component, Set<Equation> eqSet) {
-		this(action, component, null, null, null, null, eqSet, null, null, null, null);
+		this(action, component, null, null, null, null, eqSet, null, null, null, null, null);
 	}
 
 	/**
@@ -167,7 +207,7 @@ public class Action implements Serializable {
 	 *          a proof to verify
 	 */
 	public Action(ActionType action, Component component, Proof pro) {
-		this(action, component, null, null, null, null, null, null, pro, null, null);
+		this(action, component, null, null, null, null, null, null, pro, null, null, null);
 	}
 
 	/**
@@ -181,7 +221,7 @@ public class Action implements Serializable {
 	 *          an attest to verify
 	 */
 	public Action(ActionType action, Component component, Attest att) {
-		this(action, component, null, null, null, null, null, null, null, att, null);
+		this(action, component, null, null, null, null, null, null, null, att, null, null);
 	}
 
 	/**
@@ -195,7 +235,7 @@ public class Action implements Serializable {
 	 *          a component that the executing component trusts
 	 */
 	public Action(ActionType action, Component component, Component comPartner) {
-		this(action, component, null, null, comPartner, null, null, null, null, null, null);
+		this(action, component, null, null, comPartner, null, null, null, null, null, null, null);
 	}
 	
 	/**
@@ -210,7 +250,7 @@ public class Action implements Serializable {
 	 * 			the variables that are spotchecked
 	 */
 	public Action(ActionType action, Component component, Component comPartner, Set<Variable> vars) {
-		this(action, component, null, null, comPartner, vars, null, null, null, null, null);
+		this(action, component, null, null, comPartner, vars, null, null, null, null, null, null);
 	}
 
 	@Override
@@ -308,6 +348,12 @@ public class Action implements Serializable {
 			return "Receive_" + component + "," + comPartner + "(" + stSet + "," + varSet + ")";
 		case PRECEIVE:
 			return "PReceive_" + component + "," + comPartner + "(" + purp + "," + varSet + ")";
+		case CRECEIVE:
+			return "CReceive_" + component + "," + comPartner + "(" + dt + "," + varSet + ")";
+		case PERMISSION:
+			return "Permission_" + component + "," + comPartner + "(" + dt + ")";
+		case REVOKE:
+			return "Revoke" + component + "," + comPartner + "(" + dt + ")";
 		case TRUST:
 			return "Trust_" + component + "," + comPartner;
 		case VERIF_A:
@@ -407,5 +453,9 @@ public class Action implements Serializable {
 
 	public Purpose getPurpose() {
 		return purp;
+	}
+	
+	public DataType getDt() {
+		return dt;
 	}
 }

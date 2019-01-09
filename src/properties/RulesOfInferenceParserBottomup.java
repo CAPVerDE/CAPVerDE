@@ -12,6 +12,7 @@ import architecture.Architecture;
 import architecture.Attest;
 import architecture.Component;
 import architecture.Composition;
+import architecture.DataType;
 import architecture.Deduction;
 import architecture.Dep;
 import architecture.Equation;
@@ -381,6 +382,22 @@ public class RulesOfInferenceParserBottomup extends Parser implements Serializab
 				TraceBuffer.logMessage(statement, "Rule P2 not applicable", recurseDepth, LogType.INFO);
 			}
 			break;
+		case CONSENTVIOLATED:
+			//TODO
+			// Rule C
+			System.out.println(spacing + "Trying Rule C...");
+			TraceBuffer.logMessage(statement, "Trying Rule C...", recurseDepth, LogType.INFO);
+			if (isContainedIllegalReceive(statement.getOwner(), statement.getDt())) {
+				resultHistory.put(statement, true);
+				System.out.println(spacing + "Rule C applied for statement: " + statement);
+				TraceBuffer.logMessage(
+						statement, "Rule C applied for statement: " + statement, recurseDepth, LogType.END);
+				return true;
+			} else {
+				System.out.println(spacing + "Rule C not applicable");
+				TraceBuffer.logMessage(statement, "Rule C not applicable", recurseDepth, LogType.INFO);
+			}
+			break;
 		default:
 			break;
 		}
@@ -444,6 +461,74 @@ public class RulesOfInferenceParserBottomup extends Parser implements Serializab
 					// variable is not part of the purpose-bound consent
 					return true;
 				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Helper method to check whether a components shares at least one variable without an according consent.
+	 * @param owner
+	 * 			the component
+	 * @param dt
+	 * 			the data type that contains the variables
+	 * @return
+	 */
+	private boolean isContainedIllegalReceive(Component owner, DataType dt) {
+		// find a receive action that fits the component and data type
+		for (Action a : arch.getInterComp_Actions()) {
+			if (a.getAction() != ActionType.RECEIVE || !a.getComPartner().equals(owner)) {
+				continue;
+			}
+			for (Variable v : dt.getVars()) {
+				if (a.getVarSet().contains(v)) {
+					// check if there is a revoke or no permission
+					if (isContainedRevoke(owner, dt) || !isContainedPermission(owner, dt)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Helper method to check whether a component has a suiting revoke action.
+	 * @param comp
+	 * 			the component
+	 * @param dt
+	 * 			the data type
+	 * @return
+	 */
+	private boolean isContainedRevoke(Component comp, DataType dt) {
+		//TODO test
+		for (Action a : arch.getAllActions()) {
+			if (a.getAction() != ActionType.REVOKE) {
+				continue;
+			}
+			if (a.getComPartner().equals(comp) && a.getDt().equals(dt)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Helper method to check whether a component has a suiting permission action.
+	 * @param comp
+	 * 			the component
+	 * @param dt
+	 * 			the data type
+	 * @return
+	 */
+	private boolean isContainedPermission(Component comp, DataType dt) {
+		//TODO test
+		for (Action a : arch.getAllActions()) {
+			if (a.getAction() != ActionType.PERMISSION) {
+				continue;
+			}
+			if (a.getComPartner().equals(comp) && a.getDt().equals(dt)) {
+				return true;
 			}
 		}
 		return false;

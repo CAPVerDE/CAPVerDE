@@ -6,6 +6,7 @@ import architecture.Architecture;
 import architecture.Attest;
 import architecture.Component;
 import architecture.Composition;
+import architecture.DataType;
 import architecture.Deduction;
 import architecture.DeductionCapability;
 import architecture.Dep;
@@ -51,7 +52,7 @@ public class ArchitectureFunctions implements Serializable {
 	 * Smart Energy Metering
 	 */
 	public static enum CaseStudy {
-		SEM, AW, PDR, MRR;
+		SEM, AW, PDR, MRR, DPIA;
 
 		/**
 		 * Method to get the enum objects from a string.
@@ -68,6 +69,8 @@ public class ArchitectureFunctions implements Serializable {
 				return PDR;
 			} else if (value.equals("Medical Research Register")) {
 				return MRR;
+			} else if (value.equals("Data Protection Impact Assessment")) {
+				return DPIA;
 			} else {
 				throw new IllegalArgumentException();
 			}
@@ -84,6 +87,8 @@ public class ArchitectureFunctions implements Serializable {
 				return "Patient Data Register";
 			case MRR:
 				return "Medical Research Register";
+			case DPIA:
+				return "Data Protection Impact Assessment";
 			default:
 				return "";
 			}
@@ -109,6 +114,7 @@ public class ArchitectureFunctions implements Serializable {
 	private Set<Property> pSet;
 	private Set<Purpose> puSet;
 	private PurposeHierarchy purpHier;
+	private Set<DataType> dtSet;
 
 	/**
 	 * The constructor of the architecture functions.
@@ -128,6 +134,7 @@ public class ArchitectureFunctions implements Serializable {
 		pSet = new LinkedHashSet<Property>();
 		puSet = new LinkedHashSet<Purpose>();
 		purpHier = new PurposeHierarchy();
+		dtSet = new LinkedHashSet<DataType>();
 		createDefaultDeduc();
 	}
 
@@ -181,6 +188,10 @@ public class ArchitectureFunctions implements Serializable {
 				// fall through
 			case TRUST:
 				// fall through
+			case PERMISSION:
+				// fall through
+			case REVOKE:
+				// fall through
 			case VERIF_A:
 				// fall through
 			case VERIF_P:
@@ -190,6 +201,8 @@ public class ArchitectureFunctions implements Serializable {
 			case SPOTCHECK:
 				// fall through
 			case PRECEIVE:
+				// fall through
+			case CRECEIVE:
 				// fall through
 			case RECEIVE:
 				// add the intercomponent action
@@ -1462,5 +1475,13 @@ public class ArchitectureFunctions implements Serializable {
 	
 	public void setpuSet(Set<Purpose> puSet) {
 		this.puSet = puSet;
+	}
+	
+	public void setdtSet(Set<DataType> dtSet) {
+		this.dtSet = dtSet;
+	}
+	
+	public Set<DataType> getdtSet() {
+		return dtSet;
 	}
 }

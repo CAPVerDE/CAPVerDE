@@ -20,6 +20,7 @@ import org.eclipse.draw2d.geometry.PointList;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
@@ -36,6 +37,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
@@ -44,6 +46,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
@@ -52,6 +55,7 @@ import architecture.Architecture;
 import architecture.Attest;
 import architecture.Component;
 import architecture.Composition;
+import architecture.DataType;
 import architecture.Deduction;
 import architecture.DeductionCapability;
 import architecture.DependenceRelation;
@@ -69,6 +73,7 @@ import architecture.Term.OperatorType;
 import diagrams.ComponentFigure;
 import gui.ArchitectureFunctions.CaseStudy;
 import properties.Property;
+import properties.Property.PropertyType;
 import utils.FileReader;
 import utils.SaveLoadArch;
 
@@ -143,7 +148,7 @@ public class Gui {
 		// the top line for all extra options like save,load,edit,finish,draw
 		Composite top = new Composite(everything, SWT.BORDER);
 		top.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-		top.setLayout(new GridLayout(6, false));
+		top.setLayout(new GridLayout(7, false));
 		top.setBackground(display.getSystemColor(SWT.COLOR_GRAY));
 
 		// finish
@@ -176,6 +181,7 @@ public class Gui {
 		examples.add(CaseStudy.AW.toString());
 		examples.add(CaseStudy.PDR.toString());
 		examples.add(CaseStudy.MRR.toString());
+		examples.add(CaseStudy.DPIA.toString());
 		if (!isMac) {
 			// examples.addListener(SWT.DROP_DOWN, event -> updateCaseStudies(archFunc, examples));
 		}
@@ -268,6 +274,21 @@ public class Gui {
 		hierButton.setText("Show");
 		hierButton.setToolTipText("Show the purpose hierarchy as lattice.");
 		hierButton.addListener(SWT.Selection, event -> showHierarchy());
+
+		// impact assessment
+		Group DPIA = new Group(top, SWT.SHADOW_IN);
+		DPIA.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		DPIA.setLayout(new GridLayout(1, false));
+		DPIA.setText("Data Protection Impact Assessment");
+
+		Button startIA = new Button(DPIA, SWT.PUSH);
+		startIA.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
+		startIA.setText("Start");
+		startIA.setToolTipText("Starts the Data Protection Impact Assessment.");
+		startIA.addListener(SWT.Selection, event -> impactAssessment());
+		startIA.setEnabled(false);
+		editBtn.addListener(SWT.Selection, event -> startIA.setEnabled(false));
+		finishButton.addListener(SWT.Selection, event -> startIA.setEnabled(true));
 
 		// tab folder
 		TabFolder folder = new TabFolder(everything, SWT.NONE);
@@ -1633,7 +1654,7 @@ public class Gui {
 		purpProp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		purpProp.setLayout(new GridLayout(84, false));
 		purpProp.setText("Purpose Limitation");
-		
+
 		Combo compProp10;// = new Combo(notstoredProp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		if (isMac) {
 			compProp10 = new Combo(purpProp, SWT.SIMPLE | SWT.READ_ONLY);
@@ -1839,6 +1860,7 @@ public class Gui {
 					loadButton2.setEnabled(true);
 					folder.setSelection(0);
 					drawButton.setEnabled(false);
+					startIA.setEnabled(false);
 					recursiveSetEnabled(right, true);
 					recursiveSetEnabled(right2, false);
 					recursiveSetEnabled(left, true);
@@ -1883,6 +1905,7 @@ public class Gui {
 					finishButton.setEnabled(false);
 					folder.setSelection(1);
 					drawButton.setEnabled(true);
+					startIA.setEnabled(true);
 					recursiveSetEnabled(right, false);
 					recursiveSetEnabled(right2, true);
 					recursiveSetEnabled(left, false);
@@ -2151,7 +2174,7 @@ public class Gui {
 		PurposeHierarchy purpHier = archFunc.getPurpHier();
 		final Shell shell = new Shell(display);
 		shell.setMaximized(true);
-		shell.setText("Architecture Diagram");
+		shell.setText("Purpose Hierarchy");
 		final LightweightSystem lws = new LightweightSystem(shell);
 		Figure contents = new Figure();
 		int width = purpHier.getPurposes().size();
@@ -2248,6 +2271,205 @@ public class Gui {
 				display.sleep();
 			}
 		}
+	}
+
+	/**
+	 * Helper method that open a new shell for the data protection impact assessment.
+	 */
+	private static void impactAssessment() {
+		// TODO finish
+		//TODO 1. table with data types that have to get impact values 1-4
+		final Shell shell = new Shell(display);
+		shell.setMaximized(true);
+		shell.setText("Impact Assessment");
+		shell.setLayout(new FillLayout());
+
+		Composite everything = new Composite(shell, SWT.BORDER);
+		everything.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		everything.setLayout(new GridLayout(1, false));
+		everything.setBackground(display.getSystemColor(SWT.COLOR_GRAY));
+
+		// first step
+		Group dataTypes = new Group(everything, SWT.SHADOW_IN);
+		dataTypes.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		dataTypes.setLayout(new GridLayout(12, false));
+		dataTypes.setText("Data Types");
+
+		Table dt = new Table(dataTypes, SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
+		dt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		dt.setToolTipText("Data Types in the Architecture");
+		TableColumn column1 = new TableColumn(dt, SWT.NONE);
+		TableColumn column2 = new TableColumn(dt, SWT.NONE);
+		for (DataType d : archFunc.getdtSet()) {
+			TableItem item = new TableItem(dt, SWT.NONE);
+			item.setText(new String[] {d.toString(), "replace with level"});
+		}
+		column1.pack();
+		column2.pack();
+
+		// stuff for editable column
+		final TableEditor editor = new TableEditor(dt);
+		//The editor must have the same size as the cell and must
+		//not be any smaller than 50 pixels.
+		editor.horizontalAlignment = SWT.LEFT;
+		editor.grabHorizontal = true;
+		editor.minimumWidth = 50;
+		// editing the second column
+		final int EDITABLECOLUMN = 1;
+
+		dt.addListener(SWT.Selection, e -> {
+			// Clean up any previous editor control
+			Control oldEditor = editor.getEditor();
+			if (oldEditor != null)
+				oldEditor.dispose();
+
+			// Identify the selected row
+			TableItem item = (TableItem) e.item;
+			if (item == null)
+				return;
+
+			// The control that will be the editor must be a child of the Table
+			Text newEditor = new Text(dt, SWT.NONE);
+			newEditor.setText(item.getText(EDITABLECOLUMN));
+			newEditor.addModifyListener(me -> {
+				Text text = (Text) editor.getEditor();
+				editor.getItem().setText(EDITABLECOLUMN, text.getText());
+			});
+			newEditor.selectAll();
+			newEditor.setFocus();
+			editor.setEditor(newEditor, item, EDITABLECOLUMN);
+		});
+
+		//TODO 2. list possible properties to check for (user extendible)
+		// second step
+		Group properties = new Group(everything, SWT.SHADOW_IN);
+		properties.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		properties.setLayout(new GridLayout(12, false));
+		properties.setText("Properties");
+
+		Table propertyTable = new Table(properties, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		propertyTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		propertyTable.setToolTipText("Properties to verify");
+		for (Property p : archFunc.getpSet()) {
+			if (p.getType() == PropertyType.CONSENTVIOLATED) {
+				TableItem item = new TableItem(propertyTable, SWT.NONE);
+				item.setText(p.toString());
+			}
+		}
+
+		//TODO 3. verify properties
+		// third step
+		Button verify = new Button(properties, SWT.PUSH);
+		verify.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
+		verify.setText("Verify");
+		
+		Group violation = new Group(everything, SWT.SHADOW_IN);
+		violation.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		violation.setLayout(new GridLayout(12, false));
+		violation.setText("Violations");
+		
+		Table violations = new Table(violation, SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
+		violations.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 5));
+		violations.setToolTipText("Occurrences of Privacy Breaches");
+		TableColumn column1_2 = new TableColumn(violations, SWT.NONE);
+		TableColumn column2_2 = new TableColumn(violations, SWT.NONE);
+		
+		verify.addListener(SWT.Selection, event -> {
+			for (TableItem i : propertyTable.getItems()) {
+				if (i.getChecked()) {
+					if (archFunc.verify(i.getText())) {
+						// there is a violation
+						// hence add property to violation table
+						TableItem item = new TableItem(violations, SWT.NONE);
+						item.setText(new String[] {i.getText(), "replace with level"});
+					}
+				}
+			}
+			column1_2.pack();
+			column2_2.pack();
+			
+		});
+		
+		// probably redundant stuff for editable column
+		final TableEditor editor2 = new TableEditor(violations);
+		//The editor must have the same size as the cell and must
+		//not be any smaller than 50 pixels.
+		editor2.horizontalAlignment = SWT.LEFT;
+		editor2.grabHorizontal = true;
+		editor2.minimumWidth = 50;
+
+		violations.addListener(SWT.Selection, e -> {
+			// Clean up any previous editor control
+			Control oldEditor = editor2.getEditor();
+			if (oldEditor != null)
+				oldEditor.dispose();
+
+			// Identify the selected row
+			TableItem item = (TableItem) e.item;
+			if (item == null)
+				return;
+
+			// The control that will be the editor must be a child of the Table
+			Text newEditor = new Text(violations, SWT.NONE);
+			newEditor.setText(item.getText(EDITABLECOLUMN));
+			newEditor.addModifyListener(me -> {
+				Text text = (Text) editor2.getEditor();
+				editor2.getItem().setText(EDITABLECOLUMN, text.getText());
+			});
+			newEditor.selectAll();
+			newEditor.setFocus();
+			editor2.setEditor(newEditor, item, EDITABLECOLUMN);
+		});
+
+		//TODO 4. for all violation: let user set probability level 1-4
+		//TODO 5. calculate overall risk level
+
+		// fifth step
+		Group risk = new Group(everything, SWT.SHADOW_IN);
+		risk.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		risk.setLayout(new GridLayout(12, false));
+		risk.setText("Risk");
+		
+		Button calculate = new Button(risk, SWT.PUSH);
+		calculate.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
+		calculate.setText("Calculate");
+		
+		Label levelText = new Label(risk, SWT.CENTER);
+		levelText.setText("The risk level is: ");
+		Label level = new Label(risk, SWT.CENTER);
+		level.setText("0");
+
+		int maxlvl = 0;
+		calculate.addListener(SWT.Selection, event -> {
+			for (TableItem i : violations.getItems()) {
+				//TODO multiply impact level of data type with probability level of violation
+				int lvl = Integer.parseInt(i.getText(1)) * impactLevel(i.getText(), dt);
+				if (lvl > maxlvl) {
+					level.setText(Integer.toString(lvl));
+				}
+			}
+		});
+
+		shell.open();
+		// main loop
+		while (!shell.isDisposed()) {
+			while (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+	}
+
+	private static int impactLevel(String property, Table dt) {
+		// TODO Auto-generated method stub
+		int lvl = 0;
+		String dataType = property.substring(property.indexOf("(") + 1, property.indexOf(")"));
+		for (TableItem i : dt.getItems()) {
+			if (i.getText(0).equals(dataType)) {
+				lvl = Integer.parseInt(i.getText(1));
+				break;
+			}
+		}
+		return lvl;
 	}
 
 	/**
