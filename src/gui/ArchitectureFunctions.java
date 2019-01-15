@@ -218,7 +218,7 @@ public class ArchitectureFunctions implements Serializable {
 			ded.getComp().setDeducSet(ded.getDeducSet());
 		}
 		// create arch
-		arch = new Architecture(cSet, interComponentActions, trustSet, composSet, purpHier); //TODO replace null with actual purp hier
+		arch = new Architecture(cSet, interComponentActions, trustSet, composSet, purpHier);
 		// create the verifier
 		//parserTd = new RulesOfInferenceParserTopdown(arch);
 		parserBu = new RulesOfInferenceParserBottomup(arch);
@@ -638,6 +638,54 @@ public class ArchitectureFunctions implements Serializable {
 	}
 
 	/**
+	 * Method that adds a 'creceive' event to the architecture's set.
+	 * @param comp1
+	 * 			the receiving component
+	 * @param comp2
+	 * 			the sending component
+	 * @param dt
+	 * 			the data type condition
+	 * @param varSet
+	 * 			the set of variables
+	 */
+	public void addCReceive(String comp1, String comp2, String dt, Set<String> varSet) {
+		// TODO Auto-generated method stub
+		Component component1 = null;
+		Component component2 = null;
+		DataType dataType = null;
+		Set<Variable> variableSet = new LinkedHashSet<Variable>();
+		// go through the Sets and identify the right objects
+		for (Component c : cSet) {
+			if (comp1 != null && c.toString().equals(comp1)) {
+				component1 = c;
+			} else if (comp2 != null && c.toString().equals(comp2)) {
+				component2 = c;
+			}
+		}
+		for (String s : varSet) {
+			for (Variable v : vSet) {
+				if (v.toString().equals(s)) {
+					variableSet.add(v);
+					break;
+				}
+			}
+		}
+		for (DataType d : dtSet) {
+			if (d.toString().equals(dt)) {
+				dataType = d;
+				break;
+			}
+		}
+		if (component1 != null && component2 != null && !(dataType == null
+				|| variableSet.isEmpty())) {
+			aSet.add(
+					new Action(ActionType.CRECEIVE, component1, component2, dataType, variableSet));
+		}
+		// Debug
+		System.out.println(aSet);
+	}
+
+	/**
 	 * Method that adds a 'check' event to the architecture's Set.
 	 * @param comp
 	 *          the name of the component
@@ -844,6 +892,72 @@ public class ArchitectureFunctions implements Serializable {
 		System.out.println(deducs);
 	}
 
+	/**
+	 * Method to add a Permission action to the set of actions.
+	 * @param comp1
+	 * 			String of the first component
+	 * @param comp2
+	 * 			String of the second component
+	 * @param dt
+	 * 			String of the data type
+	 */
+	public void addPermission(String comp1, String comp2, String dt) {
+		// TODO Auto-generated method stub
+		Component c1 = null;
+		Component c2 = null;
+		DataType dataType = null;
+		for (Component c : cSet) {
+			if (c.toString().equals(comp1)) {
+				c1 = c;
+			} else if (c.toString().equals(comp2)) {
+				c2 = c;
+			}
+		}
+		for (DataType d : dtSet) {
+			if (d.toString().equals(dt)) {
+				dataType = d;
+			}
+		}
+		if (c1 != null && c2 != null && dataType != null) {
+			aSet.add(new Action(ActionType.PERMISSION, c1, c2, dataType));
+		}
+		// DEBUG
+		System.out.println(aSet);
+	}
+
+	/**
+	 * Method to add a Revoke action to the set of actions.
+	 * @param comp1
+	 * 			String of the first component
+	 * @param comp2
+	 * 			String of the second component
+	 * @param dt
+	 * 			String of the data type
+	 */
+	public void addRevoke(String comp1, String comp2, String dt) {
+		// TODO Auto-generated method stub
+		Component c1 = null;
+		Component c2 = null;
+		DataType dataType = null;
+		for (Component c : cSet) {
+			if (c.toString().equals(comp1)) {
+				c1 = c;
+			} else if (c.toString().equals(comp2)) {
+				c2 = c;
+			}
+		}
+		for (DataType d : dtSet) {
+			if (d.toString().equals(dt)) {
+				dataType = d;
+			}
+		}
+		if (c1 != null && c2 != null && dataType != null) {
+			aSet.add(new Action(ActionType.REVOKE, c1, c2, dataType));
+		}
+		// DEBUG
+		System.out.println(aSet);
+	}
+
 	public void addPurpose(String name, Set<String> varSet, Set<String> purpSet1, Set<String> purpSet2) {
 		// TODO Auto-generated method stub
 		Set<Variable> variables = new LinkedHashSet<Variable>();
@@ -941,6 +1055,24 @@ public class ArchitectureFunctions implements Serializable {
 		}
 		// Debug
 		System.out.println(stSet);
+	}
+
+	public void addDataType(String name, Set<String> varSet) {
+		// TODO Auto-generated method stub
+		Set<Variable> vars = new LinkedHashSet<Variable>();
+		for (String s : varSet) {
+			for (Variable var : vSet) {
+				if (var.toString().equals(s)) {
+					vars.add(var);
+					break;
+				}
+			}
+		}
+		if (!varSet.isEmpty()) {
+			dtSet.add(new DataType(name, vars));
+		}
+		// Debug
+		System.out.println(dtSet);
 	}
 
 	/**
@@ -1137,6 +1269,28 @@ public class ArchitectureFunctions implements Serializable {
 		}
 		if (component != null) {
 			pSet.add(new Property(Property.PropertyType.NOTPURP, component));
+		}
+		// Debug
+		System.out.println(pSet);
+	}
+
+	public void addPropConsent(String comp, String dt) {
+		// TODO test
+		Component component = null;
+		DataType dataType = null;
+		for (Component c : cSet) {
+			if (c.toString().equals(comp)) {
+				component = c;
+			}
+		}
+		for (DataType d : dtSet) {
+			if (d.toString().equals(dt)) {
+				dataType = d;
+			}
+		}
+		
+		if (component != null && dataType != null) {
+			pSet.add(new Property(Property.PropertyType.CONSENTVIOLATED, component, dataType));
 		}
 		// Debug
 		System.out.println(pSet);
@@ -1355,6 +1509,22 @@ public class ArchitectureFunctions implements Serializable {
 		if (purp != null) {
 			// remove the action
 			puSet.remove(purp);
+		}
+	}
+
+	public void removeDt(String dataType) {
+		// TODO Auto-generated method stub
+		DataType dt = null;
+		// go through the Sets and identify the right object
+		for (DataType d : dtSet) {
+			if (dataType != null && d.toString().equals(dataType)) {
+				dt = d;
+			}
+
+			if (dt != null) {
+				// remove the action
+				dtSet.remove(dt);
+			}
 		}
 	}
 
