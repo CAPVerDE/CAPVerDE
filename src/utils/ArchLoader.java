@@ -646,7 +646,7 @@ public class ArchLoader {
 	private static Variable long_lat = new Variable("long_lat");
 	private static Variable aloc = new Variable("aloc");
 	private static Variable lbs = new Variable("lbs");
-	private static Set<Variable> vSet5 = Stream.of(location, wifi_info, gps, long_lat, aloc, lbs).collect(Collectors.toCollection(LinkedHashSet::new));
+	private static Set<Variable> vSet5 = Stream.of(wifi_info, gps, long_lat, aloc, lbs).collect(Collectors.toCollection(LinkedHashSet::new));
 	// Terms
 	private static Term termGps = new Term(TermType.ATOM, gps, false);
 	private static Term termLong_lat = new Term(TermType.ATOM, long_lat, false);
@@ -674,10 +674,17 @@ public class ArchLoader {
 	private static Set<architecture.Statement> stSet5 = new LinkedHashSet<architecture.Statement>();
 	// Data Types
 	private static DataType dt = new DataType("location", Set.of(gps, wifi_info, long_lat, aloc));
+	private static DataType dt_new1 = new DataType("location", Set.of(gps, long_lat, aloc));
+	private static DataType dt_new2 = new DataType("network", Set.of(wifi_info));
 	private static Set<DataType> dtSet = Stream.of(dt).collect(Collectors.toCollection(LinkedHashSet::new));
+	private static Set<DataType> dtSet6 = Stream.of(dt_new1, dt_new2).collect(Collectors.toCollection(LinkedHashSet::new));
 	// Actions
 	private static Action permission = new Action(ActionType.PERMISSION, SP, US, dt);
 	private static Action revoke = new Action(ActionType.REVOKE, SP, US, dt);
+	private static Action permission1 = new Action(ActionType.PERMISSION, SP, US, dt_new1);
+	private static Action revoke1 = new Action(ActionType.REVOKE, SP, US, dt_new1);
+	private static Action permission2 = new Action(ActionType.PERMISSION, SP, US, dt_new2);
+	private static Action revoke2 = new Action(ActionType.REVOKE, SP, US, dt_new2);
 	private static Action hasSP_gps = new Action(ActionType.HAS, SP, gps);
 	private static Action hasSP_wifi_info = new Action(ActionType.HAS, SP, wifi_info);
 	private static Action computeSP_long_lat = new Action(
@@ -690,6 +697,16 @@ public class ArchLoader {
 			ActionType.RECEIVE, AP, SP, Collections.emptySet(), Set.of(wifi_info));
 	private static Action receiveRMAP = new Action(
 			ActionType.RECEIVE, RM, AP, Collections.emptySet(), Set.of(wifi_info));
+	private static Action creceiveAPSP2 = new Action(
+			ActionType.CRECEIVE, AP, SP, dt_new2, Set.of(wifi_info));
+	private static Action creceiveRMAP2 = new Action(
+			ActionType.CRECEIVE, RM, AP, dt_new2, Set.of(wifi_info));
+	private static Action creceiveAPSP1 = new Action(
+			ActionType.CRECEIVE, AP, SP, dt_new1, Set.of(long_lat));
+	private static Action creceiveSVAP1 = new Action(
+			ActionType.CRECEIVE, SV, AP, dt_new1, Set.of(long_lat));
+	private static Action creceiveRMAP1 = new Action(
+			ActionType.CRECEIVE, RM, AP, dt_new1, Set.of(long_lat));
 	private static Action creceiveAPSP = new Action(
 			ActionType.CRECEIVE, AP, SP, dt, Set.of(long_lat));
 	private static Action creceiveSVAP = new Action(
@@ -698,6 +715,8 @@ public class ArchLoader {
 			ActionType.CRECEIVE, RM, AP, dt, Set.of(long_lat));
 	private static Set<Action> aSet5 = Stream.of(
 			permission, revoke, hasSP_gps, hasSP_wifi_info, computeSP_long_lat, computeSV_lbs, computeRM_aloc, receiveAPSP, receiveRMAP, creceiveAPSP, creceiveSVAP, creceiveRMAP).collect(Collectors.toCollection(LinkedHashSet::new));
+	private static Set<Action> aSet6 = Stream.of(
+			permission1, revoke1, permission2, revoke2, hasSP_gps, hasSP_wifi_info, computeSP_long_lat, computeSV_lbs, computeRM_aloc, creceiveAPSP2, creceiveRMAP2, creceiveAPSP1, creceiveSVAP1, creceiveRMAP1).collect(Collectors.toCollection(LinkedHashSet::new));
 	// Dependencies
 	private static Set<DependenceRelation> dSet5 = new LinkedHashSet<DependenceRelation>();
 	// Deductions
@@ -793,6 +812,20 @@ public class ArchLoader {
 			archFunc.setdedSet(dedSet5);
 			archFunc.setpSet(pSet5);
 			archFunc.setdtSet(dtSet);
+			break;
+		case DPIA2:
+			// fifth case study: AccuWeather Data Protection Impact Assessment
+			archFunc.setcSet(cSet5);
+			archFunc.setvSet(vSet5);
+			archFunc.settSet(tSet5);
+			archFunc.seteSet(eSet5);
+			archFunc.settrustSet(trustSet5);
+			archFunc.setstSet(stSet5);
+			archFunc.setaSet(aSet6);
+			archFunc.setdSet(dSet5);
+			archFunc.setdedSet(dedSet5);
+			archFunc.setpSet(pSet5);
+			archFunc.setdtSet(dtSet6);
 			break;
 		default:
 			break;

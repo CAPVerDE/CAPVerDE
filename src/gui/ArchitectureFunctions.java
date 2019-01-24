@@ -52,7 +52,7 @@ public class ArchitectureFunctions implements Serializable {
 	 * Smart Energy Metering
 	 */
 	public static enum CaseStudy {
-		SEM, AW, PDR, MRR, DPIA;
+		SEM, AW, PDR, MRR, DPIA, DPIA2;
 
 		/**
 		 * Method to get the enum objects from a string.
@@ -71,6 +71,8 @@ public class ArchitectureFunctions implements Serializable {
 				return MRR;
 			} else if (value.equals("Data Protection Impact Assessment")) {
 				return DPIA;
+			} else if (value.equals("Data Protection Impact Assessment fixed")) {
+				return DPIA2;
 			} else {
 				throw new IllegalArgumentException();
 			}
@@ -89,6 +91,8 @@ public class ArchitectureFunctions implements Serializable {
 				return "Medical Research Register";
 			case DPIA:
 				return "Data Protection Impact Assessment";
+			case DPIA2:
+				return "Data Protection Impact Assessment fixed";
 			default:
 				return "";
 			}
@@ -1520,11 +1524,11 @@ public class ArchitectureFunctions implements Serializable {
 			if (dataType != null && d.toString().equals(dataType)) {
 				dt = d;
 			}
+		}
 
-			if (dt != null) {
-				// remove the action
-				dtSet.remove(dt);
-			}
+		if (dt != null) {
+			// remove the action
+			dtSet.remove(dt);
 		}
 	}
 

@@ -261,6 +261,7 @@ public class Action implements Serializable {
 		result = prime * result + ((att == null) ? 0 : att.hashCode());
 		result = prime * result + ((comPartner == null) ? 0 : comPartner.hashCode());
 		result = prime * result + ((component == null) ? 0 : component.hashCode());
+		result = prime * result + ((dt == null) ? 0 : dt.hashCode());
 		result = prime * result + ((eq == null) ? 0 : eq.hashCode());
 		result = prime * result + ((eqSet == null) ? 0 : eqSet.hashCode());
 		result = prime * result + ((pro == null) ? 0 : pro.hashCode());
@@ -297,6 +298,11 @@ public class Action implements Serializable {
 				return false;
 		} else if (!component.equals(other.component))
 			return false;
+		if (dt == null) {
+			if (other.dt != null)
+				return false;
+		} else if (!dt.equals(other.dt))
+			return false;
 		if (eq == null) {
 			if (other.eq != null)
 				return false;
@@ -312,6 +318,11 @@ public class Action implements Serializable {
 				return false;
 		} else if (!pro.equals(other.pro))
 			return false;
+		if (purp == null) {
+			if (other.purp != null)
+				return false;
+		} else if (!purp.equals(other.purp))
+			return false;
 		if (stSet == null) {
 			if (other.stSet != null)
 				return false;
@@ -326,11 +337,6 @@ public class Action implements Serializable {
 			if (other.varSet != null)
 				return false;
 		} else if (!varSet.equals(other.varSet))
-			return false;
-		if (purp == null) {
-			if (other.purp != null)
-				return false;
-		} else if (!purp.equals(other.purp))
 			return false;
 		return true;
 	}

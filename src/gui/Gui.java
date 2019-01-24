@@ -181,6 +181,7 @@ public class Gui {
 		examples.add(CaseStudy.PDR.toString());
 		examples.add(CaseStudy.MRR.toString());
 		examples.add(CaseStudy.DPIA.toString());
+		examples.add(CaseStudy.DPIA2.toString());
 		if (!isMac) {
 			// examples.addListener(SWT.DROP_DOWN, event -> updateCaseStudies(archFunc, examples));
 		}
@@ -894,7 +895,7 @@ public class Gui {
 		Group creceive = new Group(actions, SWT.SHADOW_IN);
 		creceive.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		creceive.setLayout(new GridLayout(75, false));
-		creceive.setText("Receive");
+		creceive.setText("CReceive");
 
 		Combo comp15;// = new Combo(receive, SWT.DROP_DOWN | SWT.READ_ONLY);
 		if (isMac) {
@@ -2212,6 +2213,7 @@ public class Gui {
 		resetBtn.addListener(SWT.Selection, event -> updatePurpsTab(purps2));
 		resetBtn.addListener(SWT.Selection, event -> updateVarsTab(vars1));
 		resetBtn.addListener(SWT.Selection, event -> updateVarsTab(vars2));
+		resetBtn.addListener(SWT.Selection, event -> updateDataTypesTab(dtTable));
 		//loadButton.addListener(SWT.Selection, event -> updateVerifiedTab(verifiedProps));
 		//loadButton2.addListener(SWT.Selection, event -> updateVerifiedTab(verifiedProps));
 		loadButton.addListener(SWT.Selection, event -> updatePropsTab(propTable));
@@ -2266,6 +2268,8 @@ public class Gui {
 		loadButton2.addListener(SWT.Selection, event -> updateVarsTab(varTable1));
 		loadButton.addListener(SWT.Selection, event -> updateVarsTab(varTable2));
 		loadButton2.addListener(SWT.Selection, event -> updateVarsTab(varTable2));
+		loadButton.addListener(SWT.Selection, event -> updateDataTypesTab(dtTable));
+		loadButton2.addListener(SWT.Selection, event -> updateDataTypesTab(dtTable));
 
 		if (isMac) {
 			resetBtn.addListener(SWT.Selection, event -> updateTerms(term1));
@@ -2678,22 +2682,6 @@ public class Gui {
 		TableColumn column1_2 = new TableColumn(violations, SWT.NONE);
 		TableColumn column2_2 = new TableColumn(violations, SWT.NONE);
 		
-		verify.addListener(SWT.Selection, event -> {
-			for (TableItem i : propertyTable.getItems()) {
-				if (i.getChecked()) {
-					if (archFunc.verify(i.getText())) {
-						// there is a violation
-						// hence add property to violation table
-						TableItem item = new TableItem(violations, SWT.NONE);
-						item.setText(new String[] {i.getText(), "replace with level"});
-					}
-				}
-			}
-			column1_2.pack();
-			column2_2.pack();
-			
-		});
-		
 		// probably redundant stuff for editable column
 		final TableEditor editor2 = new TableEditor(violations);
 		//The editor must have the same size as the cell and must
@@ -2737,6 +2725,22 @@ public class Gui {
 		Button calculate = new Button(risk, SWT.PUSH);
 		calculate.setLayoutData(new GridData(SWT.MIN, SWT.FILL, false, false, 1, 1));
 		calculate.setText("Calculate");
+		calculate.setEnabled(false);
+		verify.addListener(SWT.Selection, event -> {
+			for (TableItem i : propertyTable.getItems()) {
+				if (i.getChecked()) {
+					if (archFunc.verify(i.getText())) {
+						// there is a violation
+						// hence add property to violation table
+						TableItem item = new TableItem(violations, SWT.NONE);
+						item.setText(new String[] {i.getText(), "replace with level"});
+					}
+				}
+			}
+			column1_2.pack();
+			column2_2.pack();
+			calculate.setEnabled(true);
+		});
 		
 		Label levelText = new Label(risk, SWT.CENTER);
 		levelText.setText("The risk level is: ");
@@ -2744,16 +2748,25 @@ public class Gui {
 		level.setText("00");
 
 		calculate.addListener(SWT.Selection, event -> {
-			int maxlvl = 0;
+			int maxlvl = 1;
 			for (TableItem i : violations.getItems()) {
 				// multiply impact level of data type with probability level of violation
-				int lvl = Integer.parseInt(i.getText(1)) * impactLevel(i.getText(), dt);
+				int lvl = 0;
+				try {
+					lvl = Integer.parseInt(i.getText(1)) * impactLevel(i.getText(), dt);
+				} catch (NumberFormatException e) {
+					// TODO
+					e.printStackTrace();
+				}
 				if (lvl > maxlvl) {
 					maxlvl = lvl;
 				}
 			}
 			level.setText(Integer.toString(maxlvl));
-			if (maxlvl < 3) {
+			// coloring
+			if (maxlvl == 0) {
+				level.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+			} else if (maxlvl < 3) {
 				level.setBackground(display.getSystemColor(SWT.COLOR_GREEN));
 			} else if (maxlvl < 10) {
 				level.setBackground(display.getSystemColor(SWT.COLOR_YELLOW));
@@ -2788,7 +2801,13 @@ public class Gui {
 		String dataType = property.substring(property.indexOf("(") + 1, property.indexOf(")"));
 		for (TableItem i : dt.getItems()) {
 			if (i.getText(0).equals(dataType)) {
-				lvl = Integer.parseInt(i.getText(1));
+				try {
+					lvl = Integer.parseInt(i.getText(1));
+				} catch (NumberFormatException e) {
+					// DEBUG
+					System.out.println("Not a number!");
+					return -1;
+				}
 				break;
 			}
 		}
@@ -2902,6 +2921,8 @@ public class Gui {
 			case RECEIVE:
 				// fall through
 			case SPOTCHECK:
+				// fall through
+			case CRECEIVE:
 				// fall through
 			case PRECEIVE:
 				// source and destination have to be defined
